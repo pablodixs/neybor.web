@@ -6,8 +6,7 @@ import { useUserAccount } from '@/hooks/save-credentials'
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr'
 import axios from 'axios'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useState } from 'react'
 
 const ERROR_MESSAGES: Record<string, string> = {
     'Please check the provided fields.':
@@ -42,63 +41,59 @@ export default function Page() {
 
     if (userAccount) {
         return (
-            <main className="flex justify-center items-center h-screen">
-                <section className="max-w-[500px] w-full">
-                    <h1 className="font-semibold text-neutral-800 tracking-tight text-2xl mb-4">
-                        Tudo certo!
-                    </h1>
-                    <Link href={'/feed'}>Ir para o feed</Link>
-                </section>
-            </main>
+            <section className="max-w-[500px] w-full bg-white rounded-xl p-8">
+                <h1 className="font-semibold text-neutral-800 tracking-tight text-2xl mb-4">
+                    Tudo certo!
+                </h1>
+                <Link href={'/feed'}>Ir para o feed</Link>
+            </section>
         )
     }
 
     return (
-        <main className="flex justify-center items-center h-screen">
-            <section className="max-w-[500px] w-full">
-                <h1 className="font-semibold text-neutral-800 tracking-tight text-2xl mb-4">
-                    Bem-vindo de volta, vizinho!
-                </h1>
-                {error && (
-                    <div className="bg-red-50 p-4 rounded-lg mb-4 text-red-600 font-semibold flex gap-2 items-center">
-                        <WarningIcon size={18} weight="bold" /> {String(error)}
-                    </div>
-                )}
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <Input
-                        data-valid={error ? 'false' : 'true'}
-                        type="email"
-                        placeholder="Endereço de e-mail"
-                        value={authCredentials.email}
-                        onChange={(e) =>
-                            setAuthCredentials({
-                                ...authCredentials,
-                                email: e.target.value,
-                            })
-                        }
-                    />
-                    <Input
-                        data-valid={error ? 'false' : 'true'}
-                        type="password"
-                        placeholder="Senha"
-                        value={authCredentials.password}
-                        onChange={(e) =>
-                            setAuthCredentials({
-                                ...authCredentials,
-                                password: e.target.value,
-                            })
-                        }
-                    />
-                    <Link className="text-neutral-500" href="/auth/recovery">
-                        Esqueceu a senha?
-                    </Link>
-                    <Button type="submit">Entrar</Button>
-                </form>
-                <div className="flex gap-8 justify-center mt-8">
-                    <Button variant="secondary">Continuar com o Google</Button>
-                    <Button variant="secondary">Continuar com a Apple</Button>
+        <section className="max-w-[500px] w-full bg-white rounded-xl p-8">
+            <h1 className="font-semibold text-neutral-800 tracking-tight text-2xl mb-4">
+                Bem-vindo de volta, vizinho!
+            </h1>
+            {error && (
+                <div className="bg-red-50 p-4 rounded-lg mb-4 text-red-600 font-semibold flex gap-2 items-center">
+                    <WarningIcon size={18} weight="bold" /> {String(error)}
                 </div>
-            </section>
-        </main>
+            )}
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <Input
+                    data-valid={error ? 'false' : 'true'}
+                    type="email"
+                    placeholder="Endereço de e-mail"
+                    value={authCredentials.email}
+                    onChange={(e) =>
+                        setAuthCredentials({
+                            ...authCredentials,
+                            email: e.target.value,
+                        })
+                    }
+                />
+                <Input
+                    data-valid={error ? 'false' : 'true'}
+                    type="password"
+                    placeholder="Senha"
+                    value={authCredentials.password}
+                    onChange={(e) =>
+                        setAuthCredentials({
+                            ...authCredentials,
+                            password: e.target.value,
+                        })
+                    }
+                />
+                <Link className="text-neutral-500" href="/auth/recovery">
+                    Esqueceu a senha?
+                </Link>
+                <Button type="submit">Entrar</Button>
+            </form>
+            <div className="flex gap-8 justify-center mt-8">
+                <Button variant="secondary">Continuar com o Google</Button>
+                <Button variant="secondary">Continuar com a Apple</Button>
+            </div>
+        </section>
     )
 }

@@ -1,14 +1,41 @@
+import { Icon } from '@phosphor-icons/react'
 import { ButtonHTMLAttributes } from 'react'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary'
+    variant?: 'primary' | 'secondary' | 'bordered'
+    icon?: Icon
+    iconPlacement?: 'leading' | 'trailing'
+    textAlign?: 'left' | 'center' | 'right'
+    fullWidth?: boolean
 }
 
-export function Button({ variant = 'primary', ...props }: ButtonProps) {
+const VARIANT_CLASSES = {
+    primary: 'bg-green-600 hover:bg-green-700 text-white',
+    secondary: 'bg-neutral-100 hover:bg-neutral-200 text-neutral-900',
+    bordered:
+        'border-2 border-neutral-100 text-neutral-800 hover:bg-neutral-100',
+}
+
+export function Button({
+    variant = 'primary',
+    icon: Icon,
+    iconPlacement = 'trailing',
+    textAlign = 'center',
+    fullWidth,
+    ...props
+}: ButtonProps) {
     return (
         <button
-            className={`${variant === 'primary' ? 'bg-green-500 hover:bg-green-600' : 'bg-neutral-100 hover:bg-neutral-200'} px-4 py-3 cursor-pointer rounded-full font-semibold transition`}
+            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'inline-flex'} gap-2 items-center px-4 py-2 cursor-pointer rounded-full font-semibold transition`}
             {...props}
-        />
+        >
+            {Icon && iconPlacement === 'leading' && (
+                <Icon weight="bold" size={18} />
+            )}
+            {props.children}
+            {Icon && iconPlacement === 'trailing' && (
+                <Icon weight="bold" size={18} />
+            )}
+        </button>
     )
 }
