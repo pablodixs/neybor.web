@@ -12,7 +12,7 @@ import { ptBR } from 'date-fns/locale'
 import Image from 'next/image'
 import Link from 'next/link'
 
-interface Author {
+export interface Author {
     id: number
     displayName: string
     handle: string

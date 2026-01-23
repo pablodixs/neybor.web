@@ -7,7 +7,7 @@ interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
 export function Heading({ textAlign = 'left', ...props }: HeadingProps) {
     return (
         <h1
-            className={`font-semibold text-neutral-900 tracking-tight text-2xl mb-4 text-${textAlign}`}
+            className={`font-semibold text-neutral-800 tracking-tight text-2xl mb-4 text-${textAlign}`}
             {...props}
         >
             {props.children}

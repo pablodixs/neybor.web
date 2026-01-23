@@ -1,11 +1,13 @@
 interface SpinnerProps {
     title?: string
     size?: 'sm' | 'md' | 'lg' | 'xl'
+    color?: 'tint' | 'white'
 }
 
 export function Spinner({
     title = 'Carregando...',
     size = 'md',
+    color = 'tint',
 }: SpinnerProps) {
     const sizeMap = {
         sm: 16,
@@ -19,7 +21,7 @@ export function Spinner({
     return (
         <>
             <svg
-                className="stroke-green-600 mx-auto"
+                className={`stroke-${color === 'tint' ? 'green-600' : 'white'} mx-auto`}
                 width={dimension}
                 height={dimension}
                 viewBox="0 0 24 24"
