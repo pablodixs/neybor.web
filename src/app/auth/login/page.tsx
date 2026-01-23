@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
-import { useUserAccount } from '@/hooks/save-credentials'
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr'
-import axios from 'axios'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FormEvent, useState } from 'react'
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -15,39 +15,29 @@ const ERROR_MESSAGES: Record<string, string> = {
 }
 
 export default function Page() {
+    const router = useRouter()
     const [authCredentials, setAuthCredentials] = useState({
         email: '',
         password: '',
     })
-    const [error, setError] = useState<keyof typeof ERROR_MESSAGES | null>(null)
-    const { setUserAccount, userAccount } = useUserAccount()
+    const [error, setError] = useState<string | null>(null)
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         setError(null)
 
-        axios
-            .post('https://neybor-8pb8m.ondigitalocean.app/auth/login', {
-                email: authCredentials.email,
-                password: authCredentials.password,
-            })
-            .then((response) => {
-                setUserAccount(response.data)
-            })
-            .catch((error) => {
-                setError(ERROR_MESSAGES[error.response?.data?.message] || null)
-            })
-    }
+        const result = await signIn('credentials', {
+            redirect: false,
+            username: authCredentials.email,
+            password: authCredentials.password,
+        })
 
-    if (userAccount) {
-        return (
-            <section className="max-w-[500px] w-full bg-white rounded-xl p-8">
-                <h1 className="font-semibold text-neutral-800 tracking-tight text-2xl mb-4">
-                    Tudo certo!
-                </h1>
-                <Link href={'/feed'}>Ir para o feed</Link>
-            </section>
-        )
+        if (result?.error) {
+            setError(ERROR_MESSAGES[result.error] || 'Credenciais inválidas')
+            return
+        }
+
+        router.push('/feed')
     }
 
     return (
@@ -62,6 +52,7 @@ export default function Page() {
             )}
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <Input
+                    fullWidth
                     data-valid={error ? 'false' : 'true'}
                     type="email"
                     placeholder="Endereço de e-mail"
@@ -74,6 +65,7 @@ export default function Page() {
                     }
                 />
                 <Input
+                    fullWidth
                     data-valid={error ? 'false' : 'true'}
                     type="password"
                     placeholder="Senha"
@@ -88,7 +80,9 @@ export default function Page() {
                 <Link className="text-neutral-500" href="/auth/recovery">
                     Esqueceu a senha?
                 </Link>
-                <Button type="submit">Entrar</Button>
+                <Button fullWidth type="submit">
+                    Entrar
+                </Button>
             </form>
             <div className="flex gap-8 justify-center mt-8">
                 <Button variant="secondary">Continuar com o Google</Button>

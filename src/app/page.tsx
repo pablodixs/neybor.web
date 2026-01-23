@@ -1,6 +1,19 @@
+'use client'
+
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
+    const router = useRouter()
+    const { status } = useSession({
+        required: false,
+    })
+
+    if (status === 'authenticated') {
+        router.push('/feed')
+    }
+
     return (
         <>
             <header className="mx-auto px-8 py-8 flex items-center justify-between">
