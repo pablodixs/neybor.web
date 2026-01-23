@@ -10,7 +10,7 @@ export function Spinner({
     color = 'tint',
 }: SpinnerProps) {
     const sizeMap = {
-        sm: 16,
+        sm: 18,
         md: 24,
         lg: 32,
         xl: 48,
@@ -21,7 +21,7 @@ export function Spinner({
     return (
         <>
             <svg
-                className={`stroke-${color === 'tint' ? 'green-600' : 'white'} mx-auto`}
+                className={`${color === 'tint' ? 'stroke-green-600' : 'stroke-white'} mx-auto`}
                 width={dimension}
                 height={dimension}
                 viewBox="0 0 24 24"

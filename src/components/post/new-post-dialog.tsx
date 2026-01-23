@@ -59,7 +59,9 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                     },
                 },
             )
-            .then(() => {})
+            .then(() => {
+                onClose()
+            })
             .catch(() => {})
             .finally(() => {
                 setIsPostSending(false)
@@ -249,10 +251,11 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                                 Voltar
                             </Button>
                             <Button
+                                activityIndicator={isPostSending}
                                 onClick={handleSendPost}
                                 disabled={isPostSending}
                             >
-                                Postar
+                                {isPostSending ? 'Postando...' : 'Postar'}
                             </Button>
                         </footer>
                     </div>

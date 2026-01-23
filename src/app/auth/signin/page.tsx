@@ -20,6 +20,7 @@ import {
 import { useState } from 'react'
 import Link from 'next/link'
 import { Spinner } from '@/components/spinner'
+import { formatPhone } from '@/utils/phone-formatter'
 
 const NEYBOR_DIRECTIVES = [
     {
@@ -63,20 +64,6 @@ export default function SignInPage() {
     const handlePreviousStep = () => {
         if (currentStep === 1) return
         setCurrentStep((prev) => prev - 1)
-    }
-
-    function formatPhone(phone: string) {
-        const digits = phone.replace(/\D/g, '')
-
-        if (digits.length <= 10) {
-            return digits
-                .replace(/^(\d{2})(\d)/, '($1) $2')
-                .replace(/(\d{4})(\d)/, '$1-$2')
-        }
-
-        return digits
-            .replace(/^(\d{2})(\d)/, '($1) $2')
-            .replace(/(\d{5})(\d)/, '$1-$2')
     }
 
     return (

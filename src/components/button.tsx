@@ -1,5 +1,6 @@
 import { Icon } from '@phosphor-icons/react'
 import { ButtonHTMLAttributes } from 'react'
+import { Spinner } from './spinner'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: 'primary' | 'secondary' | 'bordered'
@@ -7,6 +8,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     iconPlacement?: 'leading' | 'trailing'
     textAlign?: 'left' | 'center' | 'right'
     fullWidth?: boolean
+    activityIndicator?: boolean
+    activityLabel?: string
 }
 
 const VARIANT_CLASSES = {
@@ -22,17 +25,20 @@ export function Button({
     iconPlacement = 'trailing',
     textAlign = 'center',
     fullWidth,
+    activityIndicator,
+    activityLabel,
     ...props
 }: ButtonProps) {
     return (
         <button
-            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'inline-flex'} gap-2 items-center justify-${textAlign} px-4 py-2 cursor-pointer rounded-full font-semibold transition disabled:text-green-900 disabled:hover:bg-green-600 disabled:cursor-not-allowed`}
+            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} min-h-10 flex gap-2 items-center justify-${textAlign} px-4 py-2 cursor-pointer rounded-full font-semibold transition disabled:text-green-900 disabled:hover:bg-green-600 disabled:cursor-not-allowed`}
             {...props}
         >
-            {Icon && iconPlacement === 'leading' && (
+            {Icon && !activityIndicator && iconPlacement === 'leading' && (
                 <Icon weight="bold" size={18} />
             )}
-            {props.children}
+            {activityIndicator && <Spinner size="sm" color="white" />}
+            {activityIndicator ? activityLabel : props.children}
             {Icon && iconPlacement === 'trailing' && (
                 <Icon weight="bold" size={18} />
             )}

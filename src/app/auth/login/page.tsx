@@ -23,8 +23,10 @@ export default function Page() {
         password: '',
     })
     const [error, setError] = useState<string | null>(null)
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        setIsLoading(true)
         event.preventDefault()
         setError(null)
 
@@ -38,6 +40,7 @@ export default function Page() {
             setError(
                 ERROR_MESSAGES[result.error] || 'Houve um erro inesperado.',
             )
+            setIsLoading(false)
             return
         }
 
@@ -92,7 +95,12 @@ export default function Page() {
                 <Link className="text-neutral-500" href="/auth/recovery">
                     Esqueceu a senha?
                 </Link>
-                <Button fullWidth type="submit">
+                <Button
+                    disabled={isLoading}
+                    activityIndicator={isLoading}
+                    fullWidth
+                    type="submit"
+                >
                     Entrar
                 </Button>
             </form>
