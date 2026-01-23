@@ -9,14 +9,17 @@ import {
     UserIcon,
     UsersThreeIcon,
 } from '@phosphor-icons/react/dist/ssr'
-import { useSession } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export function FeedLayout({ children }: { children: React.ReactNode }) {
+    const router = useRouter()
     const { data } = useSession()
 
     if (!data) {
+        router.push('/auth/login')
         return null
     }
 
@@ -77,6 +80,7 @@ export function FeedLayout({ children }: { children: React.ReactNode }) {
                         >
                             Postar
                         </Button>
+                        <button onClick={() => signOut()}>Sair</button>
                     </div>
                 </div>
             </aside>
