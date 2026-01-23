@@ -24,8 +24,8 @@ export function LeadingAside() {
 
     return (
         <>
-            <aside className="w-80 shrink-0 sticky top-20 self-start">
-                <div className="border border-neutral-100 p-2 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto">
+            <aside className="w-80 shrink-0 sticky top-20 self-start ">
+                <div className="border border-neutral-100 p-2 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto bg-white">
                     <Link
                         href={`/${data.user.profileId}`}
                         className="flex flex-col items-center p-2 mt-2"

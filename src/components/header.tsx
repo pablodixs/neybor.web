@@ -8,7 +8,7 @@ import Link from 'next/link'
 
 export function Header() {
     return (
-        <header className="shadow-2xs h-14 fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-lg z-10">
+        <header className="border-b border-neutral-100 h-14 fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-lg z-10">
             <div className="max-w-7xl mx-auto h-full grid-cols-3 grid items-center">
                 <div className="flex justify-between items-center w-80">
                     <Link

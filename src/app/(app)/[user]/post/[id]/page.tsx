@@ -65,7 +65,7 @@ export default function PostPage() {
     )
 
     return (
-        <div className="p-4 border border-neutral-100 rounded-2xl">
+        <div className="p-4 border border-neutral-100 rounded-2xl bg-white">
             <section className="flex justify-between">
                 <div className="flex gap-2 text-neutral-700 text-lg font-semibold items-center">
                     <button
