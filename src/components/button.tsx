@@ -26,7 +26,7 @@ export function Button({
 }: ButtonProps) {
     return (
         <button
-            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'inline-flex'} gap-2 items-center justify-${textAlign} px-4 py-2 cursor-pointer rounded-full font-semibold transition`}
+            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'inline-flex'} gap-2 items-center justify-${textAlign} px-4 py-2 cursor-pointer rounded-full font-semibold transition disabled:text-green-900 disabled:hover:bg-green-600 disabled:cursor-not-allowed`}
             {...props}
         >
             {Icon && iconPlacement === 'leading' && (

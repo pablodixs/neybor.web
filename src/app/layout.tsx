@@ -12,7 +12,13 @@ export default function RootLayout({
     return (
         <html lang="pt-BR">
             <SessionProvider>
-                {<body className={`antialiased`}>{children}</body>}
+                {
+                    <body
+                        className={`antialiased selection:bg-green-600 selection:text-white`}
+                    >
+                        {children}
+                    </body>
+                }
             </SessionProvider>
         </html>
     )

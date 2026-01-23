@@ -12,6 +12,7 @@ import {
 import { signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { TrailingAside } from './trailing-aside'
 
 export function FeedLayout({ children }: { children: React.ReactNode }) {
     const { data } = useSession({
@@ -82,13 +83,7 @@ export function FeedLayout({ children }: { children: React.ReactNode }) {
                 </div>
             </aside>
             <main className="flex-1 min-w-0">{children}</main>
-            <aside className="w-80 shrink-0 sticky top-20 self-start">
-                <div className="border border-neutral-100 p-2 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto">
-                    <footer>
-                        <p>&copy; 2026 Neybor</p>
-                    </footer>
-                </div>
-            </aside>
+            <TrailingAside />
         </section>
     )
 }

@@ -1,3 +1,4 @@
+import { SealCheckIcon, SealWarningIcon } from '@phosphor-icons/react'
 import {
     ChatCircleIcon,
     CityIcon,
@@ -16,6 +17,11 @@ interface Author {
     displayName: string
     handle: string
     avatarUrl: string
+    type: 'USER' | string
+    isVerified: boolean
+    neighborhood: string
+    city: string
+    locationLabel: string
 }
 
 export interface PostProps {
@@ -52,16 +58,24 @@ export function Post({ data }: PostComponentProps) {
                         height={36}
                     />
                     <div className="flex flex-col gap-2">
-                        <strong className="flex font-semibold leading-3">
+                        <strong className="flex font-semibold leading-3 items-center gap-1">
                             {data.author.displayName}
+                            {data.author.isVerified ? (
+                                <SealCheckIcon
+                                    weight="fill"
+                                    className="text-green-500"
+                                />
+                            ) : (
+                                <SealWarningIcon className="text-neutral-500" />
+                            )}
                         </strong>
                         <div className="font-medium text-sm text-neutral-500 leading-2 flex gap-1">
-                            <p>Brasília</p>
+                            <p>{data.author.neighborhood}</p>
                         </div>
                     </div>
                 </Link>
                 <div className="flex gap-2 items-center">
-                    <div className="font-medium text-sm text-green-600">
+                    <div className="font-medium text-sm text-neutral-500">
                         {data.visibility === 'PUBLIC' ? (
                             <GlobeSimpleIcon size={16} />
                         ) : data.visibility === 'NEIGHBORHOOD' ? (
