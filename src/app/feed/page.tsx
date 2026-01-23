@@ -5,7 +5,6 @@ import { Spinner } from '@/components/spinner'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 import useSWR from 'swr'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''

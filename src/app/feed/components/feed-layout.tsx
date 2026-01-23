@@ -16,26 +16,30 @@ import Link from 'next/link'
 export function FeedLayout({ children }: { children: React.ReactNode }) {
     const { data } = useSession()
 
+    if (!data) {
+        return null
+    }
+
     return (
         <section className="pt-20 px-4 max-w-7xl mx-auto flex gap-4">
             <aside className="w-80 shrink-0 sticky top-20 self-start">
                 <div className="border border-neutral-100 p-2 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto">
                     <Link
-                        href={`/${data?.user?.profileId}`}
+                        href={`/${data.user.profileId}`}
                         className="flex flex-col items-center p-2 mt-2"
                     >
                         <Image
                             className="rounded-full aspect-square object-cover w-14 h-14 mb-1 bg-neutral-100"
                             src={
-                                data?.user?.avatarUrl ||
+                                data.user.avatarUrl ||
                                 '/images/default-avatar.png'
                             }
-                            alt={data?.user?.name || 'User avatar'}
+                            alt={data.user.displayName || 'User avatar'}
                             width={56}
                             height={56}
                         />
                         <strong className="font-semibold text-xl">
-                            {data?.user?.displayName}
+                            {data.user.displayName}
                         </strong>
                         <span className="text-green-600 font-semibold text-sm flex items-center gap-1">
                             <SealCheckIcon weight="fill" /> Verificado
