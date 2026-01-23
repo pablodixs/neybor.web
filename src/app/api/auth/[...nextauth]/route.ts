@@ -12,20 +12,37 @@ export const authOptions: AuthOptions = {
                 password: { label: 'Password', type: 'password' },
             },
             async authorize(credentials) {
-                const response = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: credentials?.username,
-                        password: credentials?.password,
-                    }),
-                })
+                try {
+                    console.log('Attempting login to:', `${API_URL}/auth/login`)
+                    const response = await fetch(`${API_URL}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: credentials?.username,
+                            password: credentials?.password,
+                        }),
+                    })
 
-                const user = await response.json()
+                    const text = await response.text()
 
-                if (response.ok && user) {
-                    return user
-                } else {
+                    if (!response.ok) {
+                        console.error(
+                            'Login failed:',
+                            response.status,
+                            response.statusText,
+                        )
+                        return null
+                    }
+
+                    const user = JSON.parse(text)
+
+                    if (user) {
+                        return user
+                    } else {
+                        return null
+                    }
+                } catch (error) {
+                    console.error('Auth error:', error)
                     return null
                 }
             },

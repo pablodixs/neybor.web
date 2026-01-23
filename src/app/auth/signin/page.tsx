@@ -194,7 +194,7 @@ export default function SignInPage() {
             {currentStep === 4 && (
                 <div className="flex-1">
                     <div className="mb-8" role="status">
-                        <Spinner />
+                        <Spinner size="xl" />
                     </div>
                     <Heading textAlign="center">
                         Um instante, estamos criando sua conta...

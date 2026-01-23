@@ -1,22 +1,15 @@
 'use client'
 
-import { Post, PostProps } from '@/components/post'
-import { Spinner } from '@/components/spinner'
-import axios from 'axios'
+import useSWR from 'swr'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import useSWR from 'swr'
+
+import { PostSkeleton } from '@/components/post/post-skeleton'
+import { Post, PostProps } from '@/components/post'
+
+import { fetcherWithToken } from '@/lib/swr'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
-
-const fetcher = ([url, token]: [string, string]) =>
-    axios
-        .get(url, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        })
-        .then((res) => res.data)
 
 export default function Page() {
     const router = useRouter()
@@ -30,13 +23,17 @@ export default function Page() {
 
     const { data, isLoading } = useSWR(
         user ? [`${API_URL}/feed`, user?.user?.token] : null,
-        fetcher,
+        fetcherWithToken,
     )
 
     return (
         <div className="w-full h-full">
             {isLoading ? (
-                <Spinner />
+                <div>
+                    <PostSkeleton />
+                    <PostSkeleton />
+                    <PostSkeleton />
+                </div>
             ) : (
                 data &&
                 data.content.map((postData: PostProps) => (

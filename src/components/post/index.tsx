@@ -61,7 +61,7 @@ export function Post({ data }: PostComponentProps) {
                     </div>
                 </Link>
                 <div className="flex gap-2 items-center">
-                    <div className="font-medium text-sm text-neutral-500">
+                    <div className="font-medium text-sm text-green-600">
                         {data.visibility === 'PUBLIC' ? (
                             <GlobeSimpleIcon size={16} />
                         ) : data.visibility === 'NEIGHBORHOOD' ? (
@@ -84,8 +84,10 @@ export function Post({ data }: PostComponentProps) {
                     </button>
                 </div>
             </header>
-            <section className="my-4 font-medium text-neutral-700 leading-6">
-                <p>{data.content}</p>
+            <section className="my-4 font-medium text-neutral-800 leading-6">
+                <Link href={`/post/${data.id}`}>
+                    <p>{data.content}</p>
+                </Link>
             </section>
             <footer className="flex gap-4 text-neutral-500 items-center -m-2">
                 <button className="text-lg cursor-pointer hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors">

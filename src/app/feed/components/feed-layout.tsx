@@ -12,16 +12,13 @@ import {
 import { signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 export function FeedLayout({ children }: { children: React.ReactNode }) {
-    const router = useRouter()
-    const { data } = useSession()
+    const { data } = useSession({
+        required: true,
+    })
 
-    if (!data) {
-        router.push('/auth/login')
-        return null
-    }
+    if (!data) return null
 
     return (
         <section className="pt-20 px-4 max-w-7xl mx-auto flex gap-4">

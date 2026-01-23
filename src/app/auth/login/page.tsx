@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
+import { EyeIcon, EyeSlashIcon } from '@phosphor-icons/react'
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
@@ -16,6 +17,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export default function Page() {
     const router = useRouter()
+    const [showPassword, setShowPassword] = useState(false)
     const [authCredentials, setAuthCredentials] = useState({
         email: '',
         password: '',
@@ -33,7 +35,9 @@ export default function Page() {
         })
 
         if (result?.error) {
-            setError(ERROR_MESSAGES[result.error] || 'Credenciais inválidas')
+            setError(
+                ERROR_MESSAGES[result.error] || 'Houve um erro inesperado.',
+            )
             return
         }
 
@@ -67,9 +71,17 @@ export default function Page() {
                 <Input
                     fullWidth
                     data-valid={error ? 'false' : 'true'}
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Senha"
                     value={authCredentials.password}
+                    button={
+                        showPassword ? (
+                            <EyeSlashIcon weight="bold" />
+                        ) : (
+                            <EyeIcon weight="bold" />
+                        )
+                    }
+                    onButtonClick={() => setShowPassword(!showPassword)}
                     onChange={(e) =>
                         setAuthCredentials({
                             ...authCredentials,
