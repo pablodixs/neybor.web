@@ -1,17 +1,15 @@
 'use client'
 
-import useSWR from 'swr'
+import { Post, PostProps } from '@/components/post'
+import { PostSkeleton } from '@/components/post/post-skeleton'
+import { fetcherWithToken } from '@/lib/swr'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-
-import { PostSkeleton } from '@/components/post/post-skeleton'
-import { Post, PostProps } from '@/components/post'
-
-import { fetcherWithToken } from '@/lib/swr'
+import useSWR from 'swr'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
-export default function Page() {
+export default function Feed() {
     const router = useRouter()
 
     const { data: user } = useSession({

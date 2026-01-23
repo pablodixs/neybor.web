@@ -21,7 +21,7 @@ export function FeedLayout({ children }: { children: React.ReactNode }) {
     if (!data) return null
 
     return (
-        <section className="pt-20 px-4 max-w-7xl mx-auto flex gap-4">
+        <section className="pt-20 max-w-7xl mx-auto flex gap-4">
             <aside className="w-80 shrink-0 sticky top-20 self-start">
                 <div className="border border-neutral-100 p-2 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto">
                     <Link

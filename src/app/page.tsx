@@ -1,18 +1,14 @@
 'use client'
 
+import { ArrowRightIcon } from '@phosphor-icons/react'
 import { useSession } from 'next-auth/react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 export default function Home() {
-    const router = useRouter()
-    const { status } = useSession({
+    const { data, status } = useSession({
         required: false,
     })
-
-    if (status === 'authenticated') {
-        router.push('/feed')
-    }
 
     return (
         <>
@@ -21,18 +17,37 @@ export default function Home() {
                     Neybor
                 </h1>
                 <div className="flex gap-4 items-center">
-                    <Link
-                        className="px-4 py-2 cursor-pointer bg-neutral-100  rounded-full font-semibold"
-                        href={'/auth/login'}
-                    >
-                        Entrar
-                    </Link>
-                    <Link
-                        className="px-4 py-2 cursor-pointer bg-green-500 rounded-full font-semibold"
-                        href={'/auth/signin'}
-                    >
-                        Criar uma conta
-                    </Link>
+                    {status === 'authenticated' ? (
+                        <Link
+                            className="font-semibold flex gap-2 items-center text-green-600 hover:text-green-700 transition"
+                            href={'#'}
+                        >
+                            <Image
+                                className="rounded-full mr-1 h-9 w-9 aspect-square object-cover outline-2 outline-offset-3 outline-green-600"
+                                src={data.user.avatarUrl}
+                                alt=""
+                                width={36}
+                                height={36}
+                            />
+                            Continuar como {data.user.displayName}{' '}
+                            <ArrowRightIcon weight="bold" size={18} />
+                        </Link>
+                    ) : (
+                        <>
+                            <Link
+                                className="px-4 py-2 cursor-pointer bg-neutral-100  rounded-full font-semibold"
+                                href={'/auth/login'}
+                            >
+                                Entrar
+                            </Link>
+                            <Link
+                                className="px-4 py-2 cursor-pointer bg-green-500 rounded-full font-semibold"
+                                href={'/auth/signin'}
+                            >
+                                Criar uma conta
+                            </Link>
+                        </>
+                    )}
                 </div>
             </header>
             <section className="mx-8 p-8 rounded-3xl bg-center bg-[url('https://images.unsplash.com/photo-1760019736826-266c0f673d21?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] h-[80dvh] flex items-end justify-between">

@@ -1,6 +1,7 @@
 'use client'
 
 import { SessionProvider } from 'next-auth/react'
+
 import './globals.css'
 
 export default function RootLayout({
@@ -11,7 +12,7 @@ export default function RootLayout({
     return (
         <html lang="pt-BR">
             <SessionProvider>
-                <body className={`antialiased`}>{children}</body>
+                {<body className={`antialiased`}>{children}</body>}
             </SessionProvider>
         </html>
     )

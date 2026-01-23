@@ -85,7 +85,7 @@ export function Post({ data }: PostComponentProps) {
                 </div>
             </header>
             <section className="my-4 font-medium text-neutral-800 leading-6">
-                <Link href={`/post/${data.id}`}>
+                <Link href={`/${data.author.handle}/post/${data.id}`}>
                     <p>{data.content}</p>
                 </Link>
             </section>

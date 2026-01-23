@@ -11,17 +11,17 @@ export function Header() {
         <header className="shadow-2xs h-14 fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-lg z-10">
             <div className="max-w-7xl mx-auto h-full grid-cols-3 grid items-center">
                 <div className="flex justify-between items-center w-80">
-                    <button className="text-[1.375rem] p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
-                        <HouseIcon weight="bold" />
+                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
+                        <HouseIcon weight="regular" />
                     </button>
-                    <button className="text-[1.375rem] p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
-                        <MapTrifoldIcon weight="bold" />
+                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
+                        <MapTrifoldIcon weight="regular" />
                     </button>
-                    <button className="text-[1.375rem] p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
-                        <ChatsCircleIcon weight="bold" />
+                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
+                        <ChatsCircleIcon weight="regular" />
                     </button>
-                    <button className="text-[1.375rem] p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
-                        <BellIcon weight="bold" />
+                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
+                        <BellIcon weight="regular" />
                     </button>
                 </div>
                 <div className="w-full flex justify-center">
