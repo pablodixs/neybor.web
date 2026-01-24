@@ -33,6 +33,10 @@ export interface PostProps {
     longitude: number
     type: 'GENERAL' | 'EVENT' | 'ALERT'
     visibility: 'NEIGHBORHOOD' | 'PUBLIC' | 'PRIVATE'
+    likedByMe: boolean
+    myReactionType: string
+    reactionsCount: number
+    commentsCount: number
 }
 
 interface PostComponentProps {
@@ -104,11 +108,16 @@ export function Post({ data }: PostComponentProps) {
                 </Link>
             </section>
             <footer className="flex gap-4 text-neutral-500 items-center -m-2">
-                <button className="text-lg cursor-pointer hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors">
-                    <HeartIcon weight="bold" />
+                <button
+                    data-liked={data.likedByMe}
+                    className="text-lg cursor-pointer flex items-center gap-1 data-liked=true:text-red-600 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors"
+                >
+                    <HeartIcon weight={data.likedByMe ? 'fill' : 'bold'} />{' '}
+                    {data.reactionsCount > 0 && data.reactionsCount}
                 </button>
-                <button className="text-lg cursor-pointer hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-colors">
-                    <ChatCircleIcon weight="bold" />
+                <button className="text-lg cursor-pointer flex items-center gap-1 hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-colors">
+                    <ChatCircleIcon weight="bold" />{' '}
+                    {data.commentsCount > 0 && data.commentsCount}
                 </button>
             </footer>
         </div>
