@@ -38,6 +38,11 @@ export default function Feed() {
                     <Post key={postData.id} data={postData} />
                 ))
             )}
+            {!isLoading && data?.content.length === 0 && (
+                <div className="text-center font-semibold text-lg text-neutral-500 mt-10">
+                    Poxa, não há posts para mostrar.
+                </div>
+            )}
         </div>
     )
 }

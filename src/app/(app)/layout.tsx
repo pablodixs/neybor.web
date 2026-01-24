@@ -17,9 +17,9 @@ export default function Layout({ children }: { children: ReactNode }) {
     })
 
     return (
-        <div className="bg-neutral-100 h-screen">
+        <>
             <Header />
             <FeedLayout>{children}</FeedLayout>
-        </div>
+        </>
     )
 }
