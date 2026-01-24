@@ -1,6 +1,7 @@
 import {
     BagSimpleIcon,
     CalendarDotsIcon,
+    GearSixIcon,
     PencilSimpleLineIcon,
     UserIcon,
     UsersThreeIcon,
@@ -8,7 +9,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '../button'
-import { signOut, useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useState } from 'react'
 import { NewPostDialog } from '../post/new-post-dialog'
 import { AnimatePresence } from 'motion/react'
@@ -70,6 +71,12 @@ export function LeadingAside() {
                         >
                             <UserIcon size={20} weight="bold" /> Meu perfil
                         </Link>
+                        <Link
+                            href={`/settings`}
+                            className="flex items-center gap-2 py-2 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                        >
+                            <GearSixIcon size={20} weight="bold" /> Preferências
+                        </Link>
                         <Button
                             onClick={() =>
                                 setIsNewPostDialogOpen(!isNewPostDialogOpen)
@@ -79,7 +86,6 @@ export function LeadingAside() {
                         >
                             Postar
                         </Button>
-                        <button onClick={() => signOut()}>Sair</button>
                     </div>
                 </div>
             </aside>

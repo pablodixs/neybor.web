@@ -12,7 +12,7 @@ export function Input({ fullWidth, button, icon: Icon, ...props }: InputProps) {
     return (
         <div className="relative">
             <input
-                className={`px-4 py-3 border-2 border-neutral-100 outline-transparent focus:outline-green-600 transition-all font-semibold rounded-lg data-[valid=false]:border-red-500 ${fullWidth ? 'w-full' : ''}`}
+                className={`px-4 py-3 border-2 border-neutral-100 outline-transparent focus:outline-green-600 transition-all font-semibold rounded-lg hover:border-neutral-200 data-[valid=false]:border-red-500 ${fullWidth ? 'w-full' : ''}`}
                 {...props}
             />
             {Icon && (

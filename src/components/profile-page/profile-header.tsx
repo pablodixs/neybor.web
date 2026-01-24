@@ -11,7 +11,7 @@ import { Button } from '../button'
 import { formatDate } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-interface ProfileProps {
+export interface ProfileProps {
     avatarUrl: string
     bio: string
     city: string
