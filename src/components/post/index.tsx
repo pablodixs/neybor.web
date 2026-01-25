@@ -1,3 +1,5 @@
+'use client'
+
 import { SealCheckIcon, SealWarningIcon } from '@phosphor-icons/react'
 import {
     ChatCircleIcon,
@@ -7,10 +9,12 @@ import {
     HeartIcon,
     WarehouseIcon,
 } from '@phosphor-icons/react/dist/ssr'
+import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
 
 export interface Author {
     id: number
@@ -43,7 +47,35 @@ interface PostComponentProps {
     data: PostProps
 }
 
-export function Post({ data }: PostComponentProps) {
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+
+export function Post({
+    data,
+    currentUserToken,
+}: PostComponentProps & { currentUserToken: string }) {
+    const [liked, setLiked] = useState(data.likedByMe)
+    const [reactionsCount, setReactionsCount] = useState(data.reactionsCount)
+
+    const handleLike = (postId: number, currentUserToken: string) => {
+        axios
+            .post(`${API_URL}/post/${postId}/react?type=LIKE`, null, {
+                headers: {
+                    Authorization: `Bearer ${currentUserToken}`,
+                },
+            })
+            .then(() => {
+                setLiked(!liked)
+                if (!liked) {
+                    setReactionsCount(reactionsCount + 1)
+                } else {
+                    setReactionsCount(reactionsCount - 1)
+                }
+            })
+            .catch((error) => {
+                console.error('Error liking post:', error)
+            })
+    }
+
     return (
         <div className="w-full border border-neutral-100 rounded-2xl p-4 bg-white mb-4">
             <header className="flex justify-between items-start">
@@ -109,15 +141,20 @@ export function Post({ data }: PostComponentProps) {
             </section>
             <footer className="flex gap-4 text-neutral-500 items-center -m-2">
                 <button
-                    data-liked={data.likedByMe}
-                    className="text-lg cursor-pointer flex items-center gap-1 data-liked=true:text-red-600 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors"
+                    onClick={() => handleLike(data.id, currentUserToken)}
+                    data-liked={liked}
+                    className="text-lg relative cursor-pointer flex items-center gap-1 data-[liked=true]:text-red-600 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors"
                 >
-                    <HeartIcon weight={data.likedByMe ? 'fill' : 'bold'} />{' '}
-                    {data.reactionsCount > 0 && data.reactionsCount}
+                    <HeartIcon weight={liked ? 'fill' : 'bold'} />{' '}
+                    <span className="absolute -right-1 text-sm font-medium top-1/2 -translate-y-1/2">
+                        {reactionsCount > 0 && reactionsCount}
+                    </span>
                 </button>
-                <button className="text-lg cursor-pointer flex items-center gap-1 hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-colors">
+                <button className="text-lg relative cursor-pointer flex items-center gap-1 hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-colors">
                     <ChatCircleIcon weight="bold" />{' '}
-                    {data.commentsCount > 0 && data.commentsCount}
+                    <span className="absolute -right-1 text-sm font-medium top-1/2 -translate-y-1/2">
+                        {data.commentsCount > 0 && data.commentsCount}
+                    </span>
                 </button>
             </footer>
         </div>

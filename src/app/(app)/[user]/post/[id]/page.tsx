@@ -24,10 +24,13 @@ import Link from 'next/link'
 import { SealCheckIcon } from '@phosphor-icons/react/dist/ssr'
 import { formatDate } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { UserProfile } from '@/types/user-profile'
-import { useState } from 'react'
+import { UserProfile } from '@/interfaces/user-profile'
+import { FormEvent, useState } from 'react'
 import { Button } from '@/components/button'
 import { CircularProgressIndicator } from '@/components/circular-progress-indicator'
+import { CommentResponse } from '@/interfaces/post/comment'
+import { Comment } from '@/components/post/comment'
+import axios from 'axios'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
@@ -101,105 +104,211 @@ const PostContent = ({
 }) => {
     const [comment, setComment] = useState('')
     const [isCommenting, setIsCommenting] = useState(false)
+    const [isSendingComment, setIsSendingComment] = useState(false)
+
+    const [liked, setLiked] = useState(post.likedByMe)
+    const [reactionsCount, setReactionsCount] = useState(post.reactionsCount)
+    const [commentsCount, setCommentsCount] = useState(post.commentsCount)
+
+    const {
+        data: comments,
+        isLoading: isLoadingComments,
+        mutate,
+    } = useSWR<CommentResponse[]>(
+        user ? [`${API_URL}/post/${post.id}/comments`, user?.token] : null,
+        fetcherWithToken,
+    )
+
+    const handleSendComment = (e: FormEvent) => {
+        e.preventDefault()
+        setIsSendingComment(true)
+
+        axios
+            .post(
+                `${API_URL}/post/${post.id}/comments`,
+                {
+                    content: comment,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                },
+            )
+            .then(() => {
+                mutate()
+                setComment('')
+                setCommentsCount(commentsCount + 1)
+                setIsCommenting(false)
+            })
+            .finally(() => {
+                setIsSendingComment(false)
+            })
+    }
+
+    const handleLike = (postId: number, currentUserToken: string) => {
+        axios
+            .post(`${API_URL}/post/${postId}/react?type=LIKE`, null, {
+                headers: {
+                    Authorization: `Bearer ${currentUserToken}`,
+                },
+            })
+            .then(() => {
+                setLiked(!liked)
+                if (!liked) {
+                    setReactionsCount(reactionsCount + 1)
+                } else {
+                    setReactionsCount(reactionsCount - 1)
+                }
+            })
+            .catch((error) => {
+                console.error('Error liking post:', error)
+            })
+    }
 
     return (
         <section className="mt-4">
-            <header className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                    <Image
-                        className="rounded-full object-fill h-11 w-11"
-                        src={
-                            post.author.avatarUrl ||
-                            '/images/default-avatar.png'
-                        }
-                        alt={post.author.displayName || 'User avatar'}
-                        width={44}
-                        height={44}
-                    />
-                    <Link
-                        href={`/${post.author.handle}`}
-                        className="hover:text-green-600 transition"
-                    >
-                        <strong className="font-semibold flex items-center gap-1">
-                            {post.author.displayName}
-                            {post.author.isVerified ? (
-                                <SealCheckIcon
-                                    size={18}
-                                    weight="fill"
-                                    className="text-green-500"
-                                />
-                            ) : (
-                                <SealWarningIcon
-                                    size={18}
-                                    className="text-neutral-500"
-                                />
-                            )}
-                        </strong>
-                        <p className="text-neutral-500 text-sm">
-                            {post.author.locationLabel}
-                        </p>
-                    </Link>
-                </div>
-                <div className="flex items-center gap-1 text-xs px-2 py-1 border font-semibold border-green-700 text-green-700 rounded-full">
-                    {POST_VISIBILITY[post.visibility]}
-                </div>
-            </header>
-            <p className="font-medium text-lg my-4">{post.content}</p>
-            <footer>
-                <section className="flex items-center gap-4 -ml-2">
-                    <button className="cursor-pointer text-xl p-2 flex gap-1 rounded-full items-center text-neutral-500 hover:text-red-600 hover:bg-red-100 transition">
-                        <HeartIcon weight="bold" />
-                    </button>
-                    <button className="cursor-pointer text-xl p-2 flex gap-1 rounded-full items-center text-neutral-500 hover:text-green-600 hover:bg-green-100 transition">
-                        <ChatCircleIcon weight="bold" />
-                    </button>
-                    <button className="cursor-pointer text-xl p-2 flex gap-1 rounded-full items-center text-neutral-500 hover:text-green-600 hover:bg-green-100 transition">
-                        <PencilSimpleLineIcon weight="bold" />
-                    </button>
-                </section>
-                <section className="py-2 mt-2 border-t border-neutral-100 flex gap-2 text-sm items-center text-neutral-500">
-                    <p>
-                        {formatDate(
-                            new Date(post.createdAt),
-                            "d 'de' MMMM 'de' yyyy 'às' HH:mm",
-                            {
-                                locale: ptBR,
-                            },
-                        )}
-                    </p>
-                    <p>&bull;</p>
-                    <p className="flex gap-1 items-center font-medium">
-                        <EyeIcon size={18} /> 0 vizualizações
-                    </p>
-                </section>
-            </footer>
-            <section>
-                <div className="py-4 flex gap-2">
-                    <Image
-                        src={user.avatarUrl || '/images/default-avatar.png'}
-                        alt={user.displayName || 'User avatar'}
-                        width={36}
-                        height={36}
-                        className="rounded-full object-fill h-9 w-9"
-                    />
-                    <textarea
-                        onChange={(e) => setComment(e.target.value)}
-                        value={comment}
-                        onFocus={() => setIsCommenting(true)}
-                        className="flex-1 resize-none field-sizing-content outline-0 py-2 font-medium focus:bg-neutral-100 px-2 rounded-lg"
-                        placeholder="Escreva um comentário"
-                    />
-                </div>
-                {isCommenting && (
-                    <div className="flex gap-4 items-center justify-end">
-                        <CircularProgressIndicator
-                            size={24}
-                            value={(comment.length / 300) * 100}
+            <div>
+                <header className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                        <Image
+                            className="rounded-full object-fill h-11 w-11"
+                            src={
+                                post.author.avatarUrl ||
+                                '/images/default-avatar.png'
+                            }
+                            alt={post.author.displayName || 'User avatar'}
+                            width={44}
+                            height={44}
                         />
-                        <Button disabled={comment.length < 2}>Comentar</Button>
+                        <Link
+                            href={`/${post.author.handle}`}
+                            className="hover:text-green-600 transition"
+                        >
+                            <strong className="font-semibold flex items-center gap-1">
+                                {post.author.displayName}
+                                {post.author.isVerified ? (
+                                    <SealCheckIcon
+                                        size={18}
+                                        weight="fill"
+                                        className="text-green-500"
+                                    />
+                                ) : (
+                                    <SealWarningIcon
+                                        size={18}
+                                        className="text-neutral-500"
+                                    />
+                                )}
+                            </strong>
+                            <p className="text-neutral-500 text-sm">
+                                {post.author.locationLabel}
+                            </p>
+                        </Link>
                     </div>
-                )}
-            </section>
+                    <div className="flex items-center gap-1 text-xs px-2 py-1 border font-semibold border-green-700 text-green-700 rounded-full">
+                        {POST_VISIBILITY[post.visibility]}
+                    </div>
+                </header>
+                <p className="font-medium text-xl my-4">{post.content}</p>
+                <footer>
+                    <section className="flex items-center gap-4 -ml-2">
+                        <button
+                            onClick={() => handleLike(post.id, user.token)}
+                            data-liked={liked}
+                            className="cursor-pointer relative data-[liked=true]:text-red-600 text-2xl p-2 flex gap-1 rounded-full items-center text-neutral-500 hover:text-red-600 hover:bg-red-100 transition"
+                        >
+                            <HeartIcon weight={liked ? 'fill' : 'bold'} />
+                            <span className="absolute -right-2 text-base font-semibold top-1/2 -translate-y-1/2">
+                                {reactionsCount > 0 && reactionsCount}
+                            </span>
+                        </button>
+                        <button className="cursor-pointer relative text-2xl p-2 flex gap-1 rounded-full items-center text-neutral-500 hover:text-green-600 hover:bg-green-100 transition">
+                            <ChatCircleIcon weight="bold" />
+                            <span className="absolute -right-2 text-base font-semibold top-1/2 -translate-y-1/2">
+                                {commentsCount > 0 && commentsCount}
+                            </span>
+                        </button>
+                        <button className="cursor-pointer text-2xl p-2 flex gap-1 rounded-full items-center text-neutral-500 hover:text-green-600 hover:bg-green-100 transition">
+                            <PencilSimpleLineIcon weight="bold" />
+                        </button>
+                    </section>
+                    <section className="py-2 mt-2 border-t border-neutral-100 flex gap-2 text-sm items-center text-neutral-500">
+                        <p>
+                            {formatDate(
+                                new Date(post.createdAt),
+                                "d 'de' MMMM 'de' yyyy 'às' HH:mm",
+                                {
+                                    locale: ptBR,
+                                },
+                            )}
+                        </p>
+                        <p>&bull;</p>
+                        <p className="flex gap-1 items-center font-medium">
+                            <EyeIcon size={18} /> 0 vizualizações
+                        </p>
+                    </section>
+                </footer>
+                <form
+                    onSubmit={handleSendComment}
+                    className={`${isSendingComment && 'opacity-70'} transition`}
+                >
+                    <div className="py-4 flex gap-2">
+                        <Image
+                            src={user.avatarUrl || '/images/default-avatar.png'}
+                            alt={user.displayName || 'User avatar'}
+                            width={36}
+                            height={36}
+                            className="rounded-full object-fill h-9 w-9"
+                        />
+                        <textarea
+                            onChange={(e) => setComment(e.target.value)}
+                            value={comment}
+                            onFocus={() => setIsCommenting(true)}
+                            className="flex-1 resize-none field-sizing-content outline-0 py-2 font-medium focus:bg-neutral-100 px-2 rounded-lg"
+                            placeholder="Escreva um comentário"
+                        />
+                    </div>
+                    {isCommenting && (
+                        <div className="flex gap-4 items-center justify-end">
+                            <CircularProgressIndicator
+                                size={24}
+                                value={(comment.length / 300) * 100}
+                            />
+                            <Button
+                                type="submit"
+                                disabled={
+                                    comment.length < 2 || isSendingComment
+                                }
+                            >
+                                {isSendingComment
+                                    ? 'Comentando...'
+                                    : 'Comentar'}
+                            </Button>
+                        </div>
+                    )}
+                </form>
+            </div>
+            {comments && comments.length > 0 && (
+                <section>
+                    <h2 className="font-semibold text-neutral-700 text-lg">
+                        Comentários
+                    </h2>
+                    <div>
+                        {isLoadingComments ? (
+                            <Spinner size="md" />
+                        ) : (
+                            comments &&
+                            comments.map((comment) => (
+                                <Comment
+                                    key={comment.id}
+                                    currentUserToken={user.token}
+                                    {...comment}
+                                />
+                            ))
+                        )}
+                    </div>
+                </section>
+            )}
         </section>
     )
 }

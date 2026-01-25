@@ -35,7 +35,11 @@ export default function Feed() {
             ) : (
                 data &&
                 data.content.map((postData: PostProps) => (
-                    <Post key={postData.id} data={postData} />
+                    <Post
+                        key={postData.id}
+                        data={postData}
+                        currentUserToken={user?.user?.token || ''}
+                    />
                 ))
             )}
             {!isLoading && data?.content.length === 0 && (

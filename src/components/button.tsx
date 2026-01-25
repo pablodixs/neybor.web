@@ -31,7 +31,7 @@ export function Button({
 }: ButtonProps) {
     return (
         <button
-            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} min-h-10 flex gap-2 items-center justify-${textAlign} px-4 py-2 cursor-pointer rounded-full font-semibold transition disabled:text-green-900 disabled:hover:bg-green-600 disabled:cursor-not-allowed`}
+            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} min-h-10 flex gap-2 items-center justify-${textAlign} px-4 py-2 cursor-pointer rounded-full font-semibold transition disabled:text-neutral-500 disabled:hover:bg-neutral-300 disabled:bg-neutral-300 disabled:cursor-not-allowed`}
             {...props}
         >
             {Icon && !activityIndicator && iconPlacement === 'leading' && (
