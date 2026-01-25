@@ -10,7 +10,7 @@ import {
     WarehouseIcon,
 } from '@phosphor-icons/react/dist/ssr'
 import axios from 'axios'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, formatDistanceToNowStrict } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -57,22 +57,26 @@ export function Post({
     const [reactionsCount, setReactionsCount] = useState(data.reactionsCount)
 
     const handleLike = (postId: number, currentUserToken: string) => {
+        setLiked(!liked)
+        if (!liked) {
+            setReactionsCount(reactionsCount + 1)
+        } else {
+            setReactionsCount(reactionsCount - 1)
+        }
+
         axios
             .post(`${API_URL}/post/${postId}/react?type=LIKE`, null, {
                 headers: {
                     Authorization: `Bearer ${currentUserToken}`,
                 },
             })
-            .then(() => {
-                setLiked(!liked)
-                if (!liked) {
-                    setReactionsCount(reactionsCount + 1)
-                } else {
+            .then(() => {})
+            .catch(() => {
+                if (liked) {
                     setReactionsCount(reactionsCount - 1)
+                } else {
+                    setReactionsCount(reactionsCount + 1)
                 }
-            })
-            .catch((error) => {
-                console.error('Error liking post:', error)
             })
     }
 
@@ -124,8 +128,7 @@ export function Post({
                         className='className="font-medium text-sm text-neutral-500'
                         title={new Date(data.createdAt).toLocaleString('pt-BR')}
                     >
-                        {formatDistanceToNow(new Date(data.createdAt), {
-                            addSuffix: true,
+                        {formatDistanceToNowStrict(new Date(data.createdAt), {
                             locale: ptBR,
                         })}
                     </p>
@@ -134,12 +137,12 @@ export function Post({
                     </button>
                 </div>
             </header>
-            <section className="my-4 font-medium text-neutral-800 leading-6">
+            <section className="my-2 pl-11 font-medium text-neutral-800 leading-6">
                 <Link href={`/${data.author.handle}/post/${data.id}`}>
                     <p>{data.content}</p>
                 </Link>
             </section>
-            <footer className="flex gap-4 text-neutral-500 items-center -m-2">
+            <footer className="pl-11 flex gap-4 text-neutral-500 items-center -m-2">
                 <button
                     onClick={() => handleLike(data.id, currentUserToken)}
                     data-liked={liked}

@@ -20,7 +20,7 @@ export default function Home() {
                     {status === 'authenticated' ? (
                         <Link
                             className="font-semibold flex gap-2 items-center text-green-600 hover:text-green-700 transition"
-                            href={'#'}
+                            href={'/feed'}
                         >
                             <Image
                                 className="rounded-full mr-1 h-9 w-9 aspect-square object-cover outline-2 outline-offset-3 outline-green-600"

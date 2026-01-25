@@ -10,7 +10,6 @@ import {
     ChatCircleIcon,
     CityIcon,
     DotsThreeIcon,
-    EyeIcon,
     GlobeSimpleIcon,
     HeartIcon,
     PencilSimpleLineIcon,
@@ -147,22 +146,26 @@ const PostContent = ({
     }
 
     const handleLike = (postId: number, currentUserToken: string) => {
+        setLiked(!liked)
+        if (!liked) {
+            setReactionsCount(reactionsCount + 1)
+        } else {
+            setReactionsCount(reactionsCount - 1)
+        }
+
         axios
             .post(`${API_URL}/post/${postId}/react?type=LIKE`, null, {
                 headers: {
                     Authorization: `Bearer ${currentUserToken}`,
                 },
             })
-            .then(() => {
-                setLiked(!liked)
-                if (!liked) {
-                    setReactionsCount(reactionsCount + 1)
-                } else {
+            .then(() => {})
+            .catch(() => {
+                if (liked) {
                     setReactionsCount(reactionsCount - 1)
+                } else {
+                    setReactionsCount(reactionsCount + 1)
                 }
-            })
-            .catch((error) => {
-                console.error('Error liking post:', error)
             })
     }
 
@@ -242,10 +245,10 @@ const PostContent = ({
                                 },
                             )}
                         </p>
-                        <p>&bull;</p>
+                        {/* <p>&bull;</p>
                         <p className="flex gap-1 items-center font-medium">
                             <EyeIcon size={18} /> 0 vizualizações
-                        </p>
+                        </p> */}
                     </section>
                 </footer>
                 <form
