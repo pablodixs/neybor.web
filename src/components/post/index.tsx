@@ -10,7 +10,7 @@ import {
     WarehouseIcon,
 } from '@phosphor-icons/react/dist/ssr'
 import axios from 'axios'
-import { formatDistanceToNow, formatDistanceToNowStrict } from 'date-fns'
+import { formatDistanceToNowStrict } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Image from 'next/image'
 import Link from 'next/link'

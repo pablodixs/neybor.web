@@ -48,32 +48,32 @@ export function LeadingAside() {
                     <div className="mt-4 flex flex-col gap-2">
                         <Link
                             href={`#`}
-                            className="flex items-center gap-2 py-2 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
                             <BagSimpleIcon size={20} weight="bold" />{' '}
                             Marketplace
                         </Link>
                         <Link
                             href={`#`}
-                            className="flex items-center gap-2 py-2 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
                             <UsersThreeIcon size={20} weight="bold" /> Grupos
                         </Link>
                         <Link
                             href={`#`}
-                            className="flex items-center gap-2 py-2 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
                             <CalendarDotsIcon size={20} weight="bold" /> Eventos
                         </Link>
                         <Link
                             href={`#`}
-                            className="flex items-center gap-2 py-2 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
                             <UserIcon size={20} weight="bold" /> Meu perfil
                         </Link>
                         <Link
                             href={`/settings`}
-                            className="flex items-center gap-2 py-2 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
                             <GearSixIcon size={20} weight="bold" /> Preferências
                         </Link>

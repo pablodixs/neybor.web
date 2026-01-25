@@ -9,7 +9,6 @@ import {
     ArrowLeftIcon,
     ChatCircleIcon,
     CityIcon,
-    DotsThreeIcon,
     GlobeSimpleIcon,
     HeartIcon,
     PencilSimpleLineIcon,
@@ -24,12 +23,13 @@ import { SealCheckIcon } from '@phosphor-icons/react/dist/ssr'
 import { formatDate } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { UserProfile } from '@/interfaces/user-profile'
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/button'
 import { CircularProgressIndicator } from '@/components/circular-progress-indicator'
 import { CommentResponse } from '@/interfaces/post/comment'
 import { Comment } from '@/components/post/comment'
 import axios from 'axios'
+import { PostMenu } from '@/components/post/post-menu'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
@@ -59,12 +59,17 @@ export default function PostPage() {
 
     const postId = params?.id
 
-    const { data, isLoading } = useSWR<PostProps>(
+    const { data, isLoading, mutate } = useSWR<PostProps>(
         user && postId
             ? [`${API_URL}/post/${postId}`, user?.user?.token]
             : null,
         fetcherWithToken,
     )
+
+    const onPostDeleted = () => {
+        mutate()
+        router.back()
+    }
 
     return (
         <div className="p-4 border border-neutral-100 rounded-2xl bg-white">
@@ -79,9 +84,11 @@ export default function PostPage() {
                     <p>Post</p>
                 </div>
                 <div>
-                    <button className="p-2 rounded-full text-neutral-700 bg-neutral-100 hover:bg-neutral-200 cursor-pointer text-lg transition">
-                        <DotsThreeIcon weight="bold" />
-                    </button>
+                    <PostMenu
+                        postId={Number(data?.id)}
+                        authorId={data?.author.id}
+                        onPostDeleted={onPostDeleted}
+                    />
                 </div>
             </section>
 
@@ -105,15 +112,19 @@ const PostContent = ({
     const [isCommenting, setIsCommenting] = useState(false)
     const [isSendingComment, setIsSendingComment] = useState(false)
 
+    const commentInputRef = useRef<HTMLTextAreaElement | null>(null)
+
+    useEffect(() => {
+        if (isCommenting) {
+            commentInputRef.current?.focus()
+        }
+    }, [isCommenting])
+
     const [liked, setLiked] = useState(post.likedByMe)
     const [reactionsCount, setReactionsCount] = useState(post.reactionsCount)
     const [commentsCount, setCommentsCount] = useState(post.commentsCount)
 
-    const {
-        data: comments,
-        isLoading: isLoadingComments,
-        mutate,
-    } = useSWR<CommentResponse[]>(
+    const { data: comments, mutate } = useSWR<CommentResponse[]>(
         user ? [`${API_URL}/post/${post.id}/comments`, user?.token] : null,
         fetcherWithToken,
     )
@@ -225,7 +236,10 @@ const PostContent = ({
                                 {reactionsCount > 0 && reactionsCount}
                             </span>
                         </button>
-                        <button className="cursor-pointer relative text-2xl p-2 flex gap-1 rounded-full items-center text-neutral-500 hover:text-green-600 hover:bg-green-100 transition">
+                        <button
+                            onClick={() => setIsCommenting(true)}
+                            className="cursor-pointer relative text-2xl p-2 flex gap-1 rounded-full items-center text-neutral-500 hover:text-green-600 hover:bg-green-100 transition"
+                        >
                             <ChatCircleIcon weight="bold" />
                             <span className="absolute -right-2 text-base font-semibold top-1/2 -translate-y-1/2">
                                 {commentsCount > 0 && commentsCount}
@@ -264,6 +278,7 @@ const PostContent = ({
                             className="rounded-full object-fill h-9 w-9"
                         />
                         <textarea
+                            ref={commentInputRef}
                             onChange={(e) => setComment(e.target.value)}
                             value={comment}
                             onFocus={() => setIsCommenting(true)}
@@ -297,18 +312,13 @@ const PostContent = ({
                         Comentários
                     </h2>
                     <div>
-                        {isLoadingComments ? (
-                            <Spinner size="md" />
-                        ) : (
-                            comments &&
-                            comments.map((comment) => (
-                                <Comment
-                                    key={comment.id}
-                                    currentUserToken={user.token}
-                                    {...comment}
-                                />
-                            ))
-                        )}
+                        {comments.map((comment) => (
+                            <Comment
+                                key={comment.id}
+                                currentUserToken={user.token}
+                                {...comment}
+                            />
+                        ))}
                     </div>
                 </section>
             )}
