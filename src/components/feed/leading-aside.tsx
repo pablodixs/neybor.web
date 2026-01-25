@@ -78,6 +78,7 @@ export function LeadingAside() {
                             <GearSixIcon size={20} weight="bold" /> Preferências
                         </Link>
                         <Button
+                            size="lg"
                             onClick={() =>
                                 setIsNewPostDialogOpen(!isNewPostDialogOpen)
                             }

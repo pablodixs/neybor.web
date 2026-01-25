@@ -3,6 +3,7 @@ export interface CommentResponse {
     content: string
     authorName: string
     authorHandle: string
+    authorId: number
     authorAvatar: string
     createdAt: string
     reactionsCount: number

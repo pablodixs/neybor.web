@@ -7,6 +7,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     icon?: Icon
     iconPlacement?: 'leading' | 'trailing'
     textAlign?: 'left' | 'center' | 'right'
+    size?: 'sm' | 'md' | 'lg'
     fullWidth?: boolean
     activityIndicator?: boolean
     activityLabel?: string
@@ -18,6 +19,9 @@ const VARIANT_CLASSES = {
     bordered:
         'outline outline-2 outline-neutral-100 -outline-offset-2 text-neutral-800 hover:bg-neutral-100',
     danger: 'bg-red-600 hover:bg-red-700 text-white',
+    sm: 'text-sm px-3 py-1.5',
+    md: 'text-md px-4 py-2',
+    lg: 'text-lg px-5 py-3',
 }
 
 export function Button({
@@ -28,12 +32,13 @@ export function Button({
     fullWidth,
     activityIndicator,
     activityLabel,
+    size = 'md',
     ...props
 }: ButtonProps) {
     return (
         <button
             disabled={activityIndicator || props.disabled}
-            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} min-h-10 flex gap-2 items-center justify-${textAlign} px-4 py-2 cursor-pointer rounded-full font-semibold transition disabled:text-neutral-500 disabled:hover:bg-neutral-300 disabled:bg-neutral-300 disabled:cursor-not-allowed`}
+            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} min-h-10 flex gap-2 items-center justify-${textAlign} ${VARIANT_CLASSES[size]} cursor-pointer rounded-full font-semibold transition disabled:text-neutral-500 disabled:hover:bg-neutral-300 disabled:bg-neutral-300 disabled:cursor-not-allowed`}
             {...props}
         >
             {Icon && !activityIndicator && iconPlacement === 'leading' && (

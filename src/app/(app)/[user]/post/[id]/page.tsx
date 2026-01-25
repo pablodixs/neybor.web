@@ -219,7 +219,7 @@ const PostContent = ({
                             </p>
                         </Link>
                     </div>
-                    <div className="flex items-center gap-1 text-xs px-2 py-1 border font-semibold border-green-700 text-green-700 rounded-full">
+                    <div className="flex items-center gap-1 bg-green-50 text-sm px-2 py-1 font-semibold text-green-600 rounded-full">
                         {POST_VISIBILITY[post.visibility]}
                     </div>
                 </header>
@@ -314,6 +314,7 @@ const PostContent = ({
                     <div>
                         {comments.map((comment) => (
                             <Comment
+                                handle={post.author.handle}
                                 key={comment.id}
                                 currentUserToken={user.token}
                                 {...comment}
