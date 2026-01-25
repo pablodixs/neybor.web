@@ -19,7 +19,7 @@ export default function Feed() {
         },
     })
 
-    const { data, isLoading } = useSWR(
+    const { data, isLoading, mutate } = useSWR(
         user ? [`${API_URL}/feed`, user?.user?.token] : null,
         fetcherWithToken,
     )
@@ -36,6 +36,7 @@ export default function Feed() {
                 data &&
                 data.content.map((postData: PostProps) => (
                     <Post
+                        mutate={mutate}
                         key={postData.id}
                         data={postData}
                         currentUserToken={user?.user?.token || ''}

@@ -4,7 +4,6 @@ import { SealCheckIcon, SealWarningIcon } from '@phosphor-icons/react'
 import {
     ChatCircleIcon,
     CityIcon,
-    DotsThreeIcon,
     GlobeSimpleIcon,
     HeartIcon,
     WarehouseIcon,
@@ -15,6 +14,7 @@ import { ptBR } from 'date-fns/locale'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
+import { PostMenu } from './post-menu'
 
 export interface Author {
     id: number
@@ -45,6 +45,7 @@ export interface PostProps {
 
 interface PostComponentProps {
     data: PostProps
+    mutate: () => void
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
@@ -52,6 +53,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL
 export function Post({
     data,
     currentUserToken,
+    mutate,
 }: PostComponentProps & { currentUserToken: string }) {
     const [liked, setLiked] = useState(data.likedByMe)
     const [reactionsCount, setReactionsCount] = useState(data.reactionsCount)
@@ -78,6 +80,10 @@ export function Post({
                     setReactionsCount(reactionsCount + 1)
                 }
             })
+    }
+
+    const onPostDeleted = () => {
+        mutate()
     }
 
     return (
@@ -132,9 +138,12 @@ export function Post({
                             locale: ptBR,
                         })}
                     </p>
-                    <button className="p-1 rounded-full cursor-pointer hover:bg-neutral-100">
-                        <DotsThreeIcon weight="bold" size={16} />
-                    </button>
+                    <PostMenu
+                        buttonSize="small"
+                        authorId={data.author.id}
+                        postId={data.id}
+                        onPostDeleted={onPostDeleted}
+                    />
                 </div>
             </header>
             <section className="my-2 pl-11 font-medium text-neutral-800 leading-6">

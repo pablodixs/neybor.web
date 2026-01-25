@@ -22,6 +22,7 @@ interface PostMenuProps {
     postId: number
     onPostDeleted?: () => void
     authorId: number | undefined
+    buttonSize?: 'small' | 'default'
 }
 
 export function PostMenu({
@@ -29,6 +30,7 @@ export function PostMenu({
     postId,
     authorId,
     onPostDeleted,
+    buttonSize = 'default',
 }: PostMenuProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -197,7 +199,7 @@ export function PostMenu({
                     e.stopPropagation()
                     setIsMenuOpen(!isMenuOpen)
                 }}
-                className="p-2 rounded-full text-neutral-700 bg-neutral-100 hover:bg-neutral-200 cursor-pointer text-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`${buttonSize === 'small' ? 'p-1 text-base bg-transparent' : 'p-2 text-lg bg-neutral-100'} rounded-full text-neutral-700  hover:bg-neutral-200 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed`}
             >
                 <DotsThreeIcon weight="bold" />
             </button>
