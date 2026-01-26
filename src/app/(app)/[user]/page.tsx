@@ -4,11 +4,16 @@ import { ProfileHeader } from '@/components/profile-page/profile-header'
 import { ProfileNavigation } from '@/components/profile-page/profile-navigation'
 import { Spinner } from '@/components/spinner'
 import { fetcherWithToken } from '@/lib/swr'
+import Lottie from 'lottie-react'
 import { useSession } from 'next-auth/react'
 import { useParams } from 'next/navigation'
 import useSWR from 'swr'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
+
+import lottie from '@/assets/lotties/fish.json'
+import { Navigation } from '@/components/navigation'
+import { Heading } from '@/components/typography/heading'
 
 export default function UserPage() {
     const params = useParams()
@@ -19,6 +24,7 @@ export default function UserPage() {
             ? [`${API_URL}/profile/handle/${params.user}`, user?.user?.token]
             : null,
         fetcherWithToken,
+        { revalidateOnFocus: false },
     )
 
     if (isLoading)
@@ -31,7 +37,21 @@ export default function UserPage() {
             </div>
         )
 
-    if (!data) return <div>Usuário não encontrado</div>
+    if (!data)
+        return (
+            <div className="p-4 border border-neutral-100 rounded-2xl bg-white">
+                <Navigation />
+                <div className="flex gap-2 items-center my-10">
+                    <div>
+                        <Heading>Este perfil não foi encontrado</Heading>
+                        <p className="text-neutral-500">
+                            Verifique o nome de usuário e tente novamente.
+                        </p>
+                    </div>
+                    <Lottie className="w-2/5" animationData={lottie} />
+                </div>
+            </div>
+        )
 
     return (
         <div className="p-4 border border-neutral-100 rounded-2xl bg-white">

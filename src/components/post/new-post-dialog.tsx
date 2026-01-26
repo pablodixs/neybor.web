@@ -16,8 +16,10 @@ import {
     EyeIcon,
     MagnifyingGlassIcon,
     HouseLineIcon,
+    CaretRightIcon,
+    CaretLeftIcon,
 } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { Dispatch, SetStateAction, useState, useRef, MouseEvent } from 'react'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { motion } from 'motion/react'
@@ -25,6 +27,9 @@ import { motion } from 'motion/react'
 import { CircularProgressIndicator } from '../circular-progress-indicator'
 import { Button } from '../button'
 import axios from 'axios'
+import { Tooltip } from '../tooltip'
+import { AlertLabel } from './post-type-labels/alert-label'
+import { RecomendationsLabel } from './post-type-labels/recomendations-label'
 
 interface NewPostDialogProps {
     isOpen: boolean
@@ -36,6 +41,8 @@ enum PostType {
     MARKETPLACE,
     RECOMMENDATION,
     GENERAL,
+    POOL,
+    EVENT,
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
@@ -123,14 +130,24 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                                     </strong>
                                 </div>
                             </div>
-                            <textarea
-                                onChange={(e) => setPostContent(e.target.value)}
-                                value={postContent}
-                                autoFocus
-                                placeholder="O que está acontecendo?"
-                                className="text-xl font-medium w-full rounded-xl resize-none outline-0 pl-11 field-sizing-content"
-                                rows={4}
-                            />
+                            <section className="pl-11">
+                                {postType === PostType.RECOMMENDATION && (
+                                    <RecomendationsLabel />
+                                )}
+                                <textarea
+                                    onChange={(e) =>
+                                        setPostContent(e.target.value)
+                                    }
+                                    value={postContent}
+                                    autoFocus
+                                    placeholder="O que está acontecendo?"
+                                    className="text-xl font-medium w-full resize-none outline-0 field-sizing-content"
+                                    rows={4}
+                                />
+                                {postType === PostType.SAFETY_ALERT && (
+                                    <AlertLabel />
+                                )}
+                            </section>
                             {postContent.length > 300 && (
                                 <p className="ml-2 mt-2 text-red-700 font-semibold text-sm flex gap-2 items-center">
                                     <WarningIcon weight="bold" size={18} />{' '}
@@ -138,60 +155,37 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                                 </p>
                             )}
                         </section>
-                        <section className="mt-2 mb-4 flex gap-2 overflow-x-auto">
-                            <button className="px-3 py-1 bg-neutral-100 text-nowrap flex gap-1 items-center rounded-full text-neutral-700 font-semibold cursor-pointer hover:bg-neutral-200 transition">
-                                <WarningIcon
-                                    className="text-lg"
-                                    weight="bold"
-                                />{' '}
-                                Alerta
-                            </button>
-                            <button className="px-3 py-1 bg-neutral-100 text-nowrap flex gap-1 items-center rounded-full text-neutral-700 font-semibold cursor-pointer hover:bg-neutral-200 transition">
-                                <ShoppingCartIcon
-                                    className="text-lg"
-                                    weight="bold"
-                                />{' '}
-                                Anunciar um item
-                            </button>
-                            <Button
-                                variant="secondary"
-                                iconPlacement="leading"
-                                icon={CalendarDotsIcon}
-                            >
-                                Evento
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                iconPlacement="leading"
-                                icon={ChartBarHorizontalIcon}
-                            >
-                                Enquete
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                iconPlacement="leading"
-                                icon={MagnifyingGlassIcon}
-                            >
-                                Recomendação
-                            </Button>
-                        </section>
+                        <PostTypeOptions
+                            onTypeSelectChange={setPostType}
+                            typeSelected={postType}
+                        />
                         <section className="flex justify-between">
                             <div className="flex gap-2 fle-1 items-center">
-                                <button className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 rounded-full cursor-pointer">
-                                    <MapPinIcon weight="bold" />
-                                </button>
-                                <button className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 rounded-full cursor-pointer">
-                                    <ImageIcon weight="bold" />
-                                </button>
-                                <button className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 rounded-full cursor-pointer">
-                                    <AtIcon weight="bold" />
-                                </button>
+                                <Tooltip content="Adicionar localização">
+                                    <button className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 rounded-full cursor-pointer">
+                                        <MapPinIcon weight="bold" />
+                                    </button>
+                                </Tooltip>
+                                <Tooltip content="Adicionar mídia">
+                                    <button className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 rounded-full cursor-pointer">
+                                        <ImageIcon weight="bold" />
+                                    </button>
+                                </Tooltip>
+                                <Tooltip content="Marcar pessoas">
+                                    <button className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 rounded-full cursor-pointer">
+                                        <AtIcon weight="bold" />
+                                    </button>
+                                </Tooltip>
                             </div>
                             <div className="flex items-center gap-4">
-                                <CircularProgressIndicator
-                                    size={26}
-                                    value={(postContent.length / 300) * 100}
-                                />
+                                <Tooltip
+                                    content={`${postContent.length}/300 caracteres`}
+                                >
+                                    <CircularProgressIndicator
+                                        size={26}
+                                        value={(postContent.length / 300) * 100}
+                                    />
+                                </Tooltip>
                                 <Button
                                     disabled={
                                         postContent.length < 2 ||
@@ -286,5 +280,136 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                 />
             )}
         </>
+    )
+}
+
+const POST_TYPE_OPTIONS = [
+    {
+        type: PostType.SAFETY_ALERT,
+        label: 'Alerta',
+        icon: WarningIcon,
+        styles: 'hover:text-orange-600 hover:outline-orange-600 data-[selected=true]:bg-orange-600 data-[selected=true]:text-white data-[selected=true]:outline-orange-600 ',
+    },
+    {
+        type: PostType.MARKETPLACE,
+        label: 'Anunciar um item',
+        icon: ShoppingCartIcon,
+        styles: 'hover:text-green-600 hover:outline-green-600 data-[selected=true]:bg-green-600 data-[selected=true]:text-white data-[selected=true]:outline-green-600 ',
+    },
+    {
+        type: PostType.RECOMMENDATION,
+        label: 'Recomendação',
+        icon: MagnifyingGlassIcon,
+        styles: 'hover:text-purple-600 hover:outline-purple-600 data-[selected=true]:bg-purple-600 data-[selected=true]:text-white data-[selected=true]:outline-purple-600 ',
+    },
+    {
+        type: PostType.EVENT,
+        label: 'Evento',
+        icon: CalendarDotsIcon,
+        styles: 'hover:text-rose-600 hover:outline-rose-600 data-[selected=true]:bg-rose-600 data-[selected=true]:text-white data-[selected=true]:outline-rose-600 ',
+    },
+    {
+        type: PostType.POOL,
+        label: 'Enquete',
+        icon: ChartBarHorizontalIcon,
+        styles: 'hover:text-pink-600 hover:outline-pink-600 data-[selected=true]:bg-pink-600 data-[selected=true]:text-white data-[selected=true]:outline-pink-600 ',
+    },
+]
+
+const PostTypeOptions = ({
+    typeSelected,
+    onTypeSelectChange,
+}: {
+    typeSelected: PostType
+    onTypeSelectChange: Dispatch<SetStateAction<PostType>>
+}) => {
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
+    const isDraggingRef = useRef(false)
+    const [isMouseDown, setIsMouseDown] = useState(false)
+    const [startX, setStartX] = useState(0)
+    const [scrollLeft, setScrollLeft] = useState(0)
+
+    const handleMouseDown = (e: MouseEvent) => {
+        if (!scrollContainerRef.current) return
+        isDraggingRef.current = false
+        setIsMouseDown(true)
+        setStartX(e.pageX - scrollContainerRef.current.offsetLeft)
+        setScrollLeft(scrollContainerRef.current.scrollLeft)
+    }
+
+    const handleMouseLeave = () => {
+        setIsMouseDown(false)
+        isDraggingRef.current = false
+    }
+
+    const handleMouseUp = () => {
+        setIsMouseDown(false)
+        setTimeout(() => {
+            isDraggingRef.current = false
+        }, 0)
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+        if (!isMouseDown || !scrollContainerRef.current) return
+        e.preventDefault()
+        const x = e.pageX - scrollContainerRef.current.offsetLeft
+        const walk = (x - startX) * 2
+        if (Math.abs(x - startX) > 5) {
+            isDraggingRef.current = true
+        }
+        scrollContainerRef.current.scrollLeft = scrollLeft - walk
+    }
+
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({
+                left: direction === 'left' ? -200 : 200,
+                behavior: 'smooth',
+            })
+        }
+    }
+
+    return (
+        <div className="relative group mt-4 mb-4 flex items-center">
+            <button
+                onClick={() => scroll('left')}
+                className="cursor-pointer absolute left-0 z-10 p-1.5 rounded-full bg-white shadow-sm border border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:bg-white -ml-2 hidden group-hover:block transition-all hover:scale-110"
+            >
+                <CaretLeftIcon size={16} weight="bold" />
+            </button>
+            <section
+                ref={scrollContainerRef}
+                className={`flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full px-1 py-1 pr-8 ${isMouseDown ? 'cursor-grabbing' : 'cursor-grab'}`}
+                onMouseDown={handleMouseDown}
+                onMouseLeave={handleMouseLeave}
+                onMouseUp={handleMouseUp}
+                onMouseMove={handleMouseMove}
+            >
+                {POST_TYPE_OPTIONS.map(({ type, label, icon: Icon }) => (
+                    <button
+                        key={type}
+                        onClick={() => {
+                            if (!isDraggingRef.current) {
+                                if (typeSelected === type) {
+                                    onTypeSelectChange(PostType.GENERAL)
+                                } else {
+                                    onTypeSelectChange(type)
+                                }
+                            }
+                        }}
+                        data-selected={typeSelected === type}
+                        className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full outline-2 text-nowrap select-none -outline-offset-2 outline-neutral-100 font-semibold transition ${POST_TYPE_OPTIONS.find((option) => option.type === type)?.styles}`}
+                    >
+                        <Icon className="text-lg" weight="bold" /> {label}
+                    </button>
+                ))}
+            </section>
+            <button
+                onClick={() => scroll('right')}
+                className="cursor-pointer absolute right-0 z-10 p-1.5 rounded-full bg-white shadow-sm border border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:bg-white -mr-2 hidden group-hover:block transition-all hover:scale-110"
+            >
+                <CaretRightIcon size={16} weight="bold" />
+            </button>
+        </div>
     )
 }
