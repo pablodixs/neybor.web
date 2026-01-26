@@ -31,11 +31,19 @@ interface NewPostDialogProps {
     onClose: () => void
 }
 
+enum PostType {
+    SAFETY_ALERT,
+    MARKETPLACE,
+    RECOMMENDATION,
+    GENERAL,
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
     const [postContent, setPostContent] = useState('')
     const [postVisibility, setPostVisibility] = useState('PUBLIC')
+    const [postType, setPostType] = useState<PostType>(PostType.GENERAL)
 
     const [isPostSending, setIsPostSending] = useState(false)
     const [currentStep, setCurrentStep] = useState('draft')
@@ -50,7 +58,7 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                 `${API_URL}/post`,
                 {
                     content: postContent,
-                    type: 'GENERAL',
+                    type: PostType[postType],
                     visibility: postVisibility,
                 },
                 {
@@ -130,14 +138,21 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                                 </p>
                             )}
                         </section>
-                        <section className="mt-2 mb-4 flex gap-2">
-                            <Button
-                                variant="secondary"
-                                iconPlacement="leading"
-                                icon={ShoppingCartIcon}
-                            >
+                        <section className="mt-2 mb-4 flex gap-2 overflow-x-auto">
+                            <button className="px-3 py-1 bg-neutral-100 text-nowrap flex gap-1 items-center rounded-full text-neutral-700 font-semibold cursor-pointer hover:bg-neutral-200 transition">
+                                <WarningIcon
+                                    className="text-lg"
+                                    weight="bold"
+                                />{' '}
+                                Alerta
+                            </button>
+                            <button className="px-3 py-1 bg-neutral-100 text-nowrap flex gap-1 items-center rounded-full text-neutral-700 font-semibold cursor-pointer hover:bg-neutral-200 transition">
+                                <ShoppingCartIcon
+                                    className="text-lg"
+                                    weight="bold"
+                                />{' '}
                                 Anunciar um item
-                            </Button>
+                            </button>
                             <Button
                                 variant="secondary"
                                 iconPlacement="leading"

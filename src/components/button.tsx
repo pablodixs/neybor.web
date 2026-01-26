@@ -20,7 +20,7 @@ const VARIANT_CLASSES = {
         'outline outline-2 outline-neutral-100 -outline-offset-2 text-neutral-800 hover:bg-neutral-100',
     danger: 'bg-red-600 hover:bg-red-700 text-white',
     sm: 'text-sm px-3 py-1.5',
-    md: 'text-md px-4 py-2',
+    md: 'text-md px-4 py-2 min-h-10',
     lg: 'text-lg px-5 py-3',
 }
 
@@ -38,16 +38,22 @@ export function Button({
     return (
         <button
             disabled={activityIndicator || props.disabled}
-            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} min-h-10 flex gap-2 items-center justify-${textAlign} ${VARIANT_CLASSES[size]} cursor-pointer rounded-full font-semibold transition disabled:text-neutral-500 disabled:hover:bg-neutral-300 disabled:bg-neutral-300 disabled:cursor-not-allowed`}
+            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} text-nowrap flex gap-2 items-center justify-${textAlign} ${VARIANT_CLASSES[size]} cursor-pointer rounded-full font-semibold transition disabled:text-neutral-500 disabled:hover:bg-neutral-300 disabled:bg-neutral-300 disabled:cursor-not-allowed`}
             {...props}
         >
             {Icon && !activityIndicator && iconPlacement === 'leading' && (
-                <Icon weight="bold" size={18} />
+                <Icon
+                    weight="bold"
+                    size={size === 'sm' ? 16 : size === 'md' ? 18 : 20}
+                />
             )}
             {activityIndicator && <Spinner size="sm" color="white" />}
             {activityIndicator ? activityLabel : props.children}
             {Icon && iconPlacement === 'trailing' && (
-                <Icon weight="bold" size={18} />
+                <Icon
+                    weight="bold"
+                    size={size === 'sm' ? 16 : size === 'md' ? 18 : 20}
+                />
             )}
         </button>
     )
