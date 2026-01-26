@@ -1,3 +1,5 @@
+'use client'
+
 import {
     BellIcon,
     ChatsCircleIcon,
@@ -5,27 +7,53 @@ import {
     MapTrifoldIcon,
 } from '@phosphor-icons/react/dist/ssr'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export function Header() {
+    const path = usePathname()
+
     return (
         <header className="border-b border-neutral-100 h-14 fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-lg z-10">
             <div className="max-w-7xl mx-auto h-full grid-cols-3 grid items-center">
                 <div className="flex justify-between items-center w-80">
                     <Link
+                        data-active={path === '/feed'}
                         href={'/feed'}
-                        className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
+                        className="data-[active=true]:text-green-600 text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
                     >
-                        <HouseIcon weight="regular" />
+                        <HouseIcon
+                            weight={path === '/feed' ? 'fill' : 'regular'}
+                        />
                     </Link>
-                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
-                        <MapTrifoldIcon weight="regular" />
-                    </button>
-                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
-                        <ChatsCircleIcon weight="regular" />
-                    </button>
-                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
-                        <BellIcon weight="regular" />
-                    </button>
+                    <Link
+                        data-active={path === '/map'}
+                        href={'/map'}
+                        className="data-[active=true]:text-green-600 text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
+                    >
+                        <MapTrifoldIcon
+                            weight={path === '/map' ? 'fill' : 'regular'}
+                        />
+                    </Link>
+                    <Link
+                        data-active={path === '/messages'}
+                        href={'/messages'}
+                        className="data-[active=true]:text-green-600 text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
+                    >
+                        <ChatsCircleIcon
+                            weight={path === '/messages' ? 'fill' : 'regular'}
+                        />
+                    </Link>
+                    <Link
+                        data-active={path === '/notifications'}
+                        href={'/notifications'}
+                        className="data-[active=true]:text-green-600 text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
+                    >
+                        <BellIcon
+                            weight={
+                                path === '/notifications' ? 'fill' : 'regular'
+                            }
+                        />
+                    </Link>
                 </div>
                 <div className="w-full flex justify-center">
                     <Link href={'/feed'}>

@@ -8,9 +8,9 @@ import { useSession } from 'next-auth/react'
 import {
     ArrowLeftIcon,
     ChatCircleIcon,
-    CityIcon,
     GlobeSimpleIcon,
     HeartIcon,
+    HouseLineIcon,
     PencilSimpleLineIcon,
     SealWarningIcon,
     WarehouseIcon,
@@ -41,7 +41,7 @@ const POST_VISIBILITY = {
     ),
     NEIGHBORHOOD: (
         <>
-            <CityIcon size={14} /> <p>Vizinhança</p>
+            <HouseLineIcon weight="fill" size={14} /> <p>Vizinhança</p>
         </>
     ),
     PRIVATE: (

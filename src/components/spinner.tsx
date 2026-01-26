@@ -21,7 +21,7 @@ export function Spinner({
     return (
         <>
             <svg
-                className={`${color === 'tint' ? 'stroke-green-600' : 'stroke-white'} mx-auto`}
+                className={`${color === 'tint' ? 'stroke-green-600' : 'stroke-white'} mx-auto my-2`}
                 width={dimension}
                 height={dimension}
                 viewBox="0 0 24 24"

@@ -1,5 +1,6 @@
 import {
     BagSimpleIcon,
+    BookmarkSimpleIcon,
     CalendarDotsIcon,
     GearSixIcon,
     PencilSimpleLineIcon,
@@ -13,8 +14,10 @@ import { useSession } from 'next-auth/react'
 import { useState } from 'react'
 import { NewPostDialog } from '../post/new-post-dialog'
 import { AnimatePresence } from 'motion/react'
+import { usePathname } from 'next/navigation'
 
 export function LeadingAside() {
+    const path = usePathname()
     const { data } = useSession({
         required: true,
     })
@@ -47,35 +50,72 @@ export function LeadingAside() {
                     </Link>
                     <div className="mt-4 flex flex-col gap-2">
                         <Link
-                            href={`#`}
-                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            data-active={path === '/marketplace'}
+                            href={'/marketplace'}
+                            className="data-[active=true]:text-green-600 flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
-                            <BagSimpleIcon size={20} weight="bold" />{' '}
+                            <BagSimpleIcon
+                                size={20}
+                                weight={
+                                    path === '/marketplace' ? 'fill' : 'bold'
+                                }
+                            />{' '}
                             Marketplace
                         </Link>
                         <Link
-                            href={`#`}
-                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            data-active={path === '/groups'}
+                            href={'/groups'}
+                            className="data-[active=true]:text-green-600 flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
-                            <UsersThreeIcon size={20} weight="bold" /> Grupos
+                            <UsersThreeIcon
+                                size={20}
+                                weight={path === '/groups' ? 'fill' : 'bold'}
+                            />{' '}
+                            Grupos
                         </Link>
                         <Link
-                            href={`#`}
-                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            data-active={path === '/events'}
+                            href={'/events'}
+                            className="data-[active=true]:text-green-600 flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
-                            <CalendarDotsIcon size={20} weight="bold" /> Eventos
+                            <CalendarDotsIcon
+                                size={20}
+                                weight={path === '/events' ? 'fill' : 'bold'}
+                            />{' '}
+                            Eventos
                         </Link>
                         <Link
-                            href={`#`}
-                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            data-active={path === '/profile'}
+                            href={'/profile'}
+                            className="data-[active=true]:text-green-600 flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
-                            <UserIcon size={20} weight="bold" /> Meu perfil
+                            <UserIcon
+                                size={20}
+                                weight={path === '/profile' ? 'fill' : 'bold'}
+                            />{' '}
+                            Meu perfil
                         </Link>
                         <Link
+                            data-active={path === '/bookmarks'}
+                            href={`/bookmarks`}
+                            className="data-[active=true]:text-green-600 flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                        >
+                            <BookmarkSimpleIcon
+                                size={20}
+                                weight={path === '/bookmarks' ? 'fill' : 'bold'}
+                            />{' '}
+                            Itens salvos
+                        </Link>
+                        <Link
+                            data-active={path === '/settings'}
                             href={`/settings`}
-                            className="flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                            className="data-[active=true]:text-green-600 flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
                         >
-                            <GearSixIcon size={20} weight="bold" /> Preferências
+                            <GearSixIcon
+                                size={20}
+                                weight={path === '/settings' ? 'fill' : 'bold'}
+                            />{' '}
+                            Preferências
                         </Link>
                         <Button
                             size="lg"

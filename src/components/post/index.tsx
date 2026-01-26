@@ -1,9 +1,12 @@
 'use client'
 
-import { SealCheckIcon, SealWarningIcon } from '@phosphor-icons/react'
+import {
+    HouseLineIcon,
+    SealCheckIcon,
+    SealWarningIcon,
+} from '@phosphor-icons/react'
 import {
     ChatCircleIcon,
-    CityIcon,
     GlobeSimpleIcon,
     HeartIcon,
     WarehouseIcon,
@@ -125,7 +128,7 @@ export function Post({
                         {data.visibility === 'PUBLIC' ? (
                             <GlobeSimpleIcon size={16} />
                         ) : data.visibility === 'NEIGHBORHOOD' ? (
-                            <CityIcon size={16} />
+                            <HouseLineIcon size={16} />
                         ) : (
                             <WarehouseIcon size={16} />
                         )}

@@ -13,9 +13,9 @@ import {
     CityIcon,
     ArrowLeftIcon,
     InfoIcon,
-    DiamondsFourIcon,
     EyeIcon,
     MagnifyingGlassIcon,
+    HouseLineIcon,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import Image from 'next/image'
@@ -215,8 +215,8 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                                 }
                                 className="cursor-pointer text-neutral-800 px-4 py-2 border-2 border-neutral-100 rounded-full flex items-center gap-2 font-semibold hover:border-green-600 hover:text-green-600 transition data-[selected=true]:bg-green-600 data-[selected=true]:text-white data-[selected=true]:border-green-600"
                             >
-                                <DiamondsFourIcon size={20} weight="bold" />{' '}
-                                Vizinhanças próximas
+                                <CityIcon size={20} weight="bold" /> Vizinhanças
+                                próximas
                             </button>
                             <button
                                 data-selected={
@@ -227,7 +227,8 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                                 }
                                 className="cursor-pointer text-neutral-800 px-4 py-2 border-2 border-neutral-100 rounded-full flex items-center gap-2 font-semibold hover:border-green-600 hover:text-green-600 transition data-[selected=true]:bg-green-600 data-[selected=true]:text-white data-[selected=true]:border-green-600"
                             >
-                                <CityIcon size={20} weight="bold" /> Vizinhança
+                                <HouseLineIcon size={20} weight="bold" />{' '}
+                                Vizinhança
                             </button>
                         </div>
                         <div className="mt-4 text-center text-neutral-600 font-semibold">
