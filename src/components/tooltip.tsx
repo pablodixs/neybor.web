@@ -15,28 +15,32 @@ interface TooltipProps {
 
 const placementConfig = {
     top: {
-        initial: { opacity: 0, y: 8 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: 8 },
+        initial: { opacity: 0, scale: 0.2 },
+        animate: { opacity: 1, scale: 1 },
+        exit: { opacity: 0, scale: 0.2 },
         className: 'bottom-full mb-2 left-1/2 -translate-x-1/2',
+        originStyle: { transformOrigin: 'center bottom' },
     },
     bottom: {
-        initial: { opacity: 0, y: -8 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -8 },
+        initial: { opacity: 0, scale: 0.2 },
+        animate: { opacity: 1, scale: 1 },
+        exit: { opacity: 0, scale: 0.2 },
         className: 'top-full mt-2 left-1/2 -translate-x-1/2',
+        originStyle: { transformOrigin: 'center top' },
     },
     left: {
         initial: { opacity: 0, x: 8 },
         animate: { opacity: 1, x: 0 },
         exit: { opacity: 0, x: 8 },
         className: 'right-full mr-2 top-1/2 -translate-y-1/2',
+        originStyle: { transformOrigin: 'right center' },
     },
     right: {
         initial: { opacity: 0, x: -8 },
         animate: { opacity: 1, x: 0 },
         exit: { opacity: 0, x: -8 },
         className: 'left-full ml-2 top-1/2 -translate-y-1/2',
+        originStyle: { transformOrigin: 'left center' },
     },
 }
 
@@ -177,16 +181,17 @@ export function Tooltip({
                                     initial={config.initial}
                                     animate={config.animate}
                                     exit={config.exit}
+                                    style={config.originStyle}
                                     transition={{
                                         type: 'spring',
                                         stiffness: 300,
                                         damping: 20,
                                     }}
-                                    className="whitespace-nowrap bg-neutral-900 text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg"
+                                    className="whitespace-nowrap font-semibold bg-neutral-100/80 backdrop-blur-sm text-neutral-900 inset-shadow-xs px-3 py-1.5 rounded-full text-sm shadow-lg"
                                 >
                                     {content}
                                     <div
-                                        className={`absolute w-2 h-2 bg-neutral-900 ${
+                                        className={`rounded-xs absolute w-2 h-2 bg-neutral-100/80 backdrop-blur-sm ${
                                             placement === 'top' &&
                                             'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45'
                                         } ${

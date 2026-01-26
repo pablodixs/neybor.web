@@ -138,7 +138,10 @@ export function MyNeighborhoodAlerts() {
             {weatherData && (
                 <section className="mt-4">
                     <div className="flex justify-evenly text-neutral-700">
-                        <Tooltip content="Condição e temperatura">
+                        <Tooltip
+                            placement="bottom"
+                            content="Condição e temperatura"
+                        >
                             <span className="flex gap-1 items-center">
                                 {
                                     WHEATHER_CODE_MAP[
@@ -150,7 +153,7 @@ export function MyNeighborhoodAlerts() {
                                 </strong>
                             </span>
                         </Tooltip>
-                        <Tooltip content="Umidade">
+                        <Tooltip placement="bottom" content="Umidade">
                             <span className="flex gap-1 items-center">
                                 <DropIcon
                                     weight="bold"
@@ -161,7 +164,10 @@ export function MyNeighborhoodAlerts() {
                                 </strong>
                             </span>
                         </Tooltip>
-                        <Tooltip content="Probabilidade de precipitação">
+                        <Tooltip
+                            placement="bottom"
+                            content="Probabilidade de precipitação"
+                        >
                             <span className="flex gap-1 items-center">
                                 <UmbrellaIcon
                                     weight="bold"
