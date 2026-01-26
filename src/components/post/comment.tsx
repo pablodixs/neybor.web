@@ -7,12 +7,20 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ReactionButton } from './reaction-button'
 import { CommentMenu } from './comment-menu'
+import { UserProfile } from '@/interfaces/user-profile'
 
 export function Comment({
-    currentUserToken,
     handle,
+    mutate,
+    currentUser,
+    postOwnerId,
     ...comment
-}: CommentResponse & { currentUserToken: string; handle: string }) {
+}: CommentResponse & {
+    currentUser: UserProfile
+    handle: string
+    postOwnerId: number | undefined
+    mutate: () => void
+}) {
     return (
         <div className="py-4">
             <section className="flex gap-2 items-start">
@@ -55,8 +63,11 @@ export function Comment({
                         </div>
                         <div className="ml-1">
                             <CommentMenu
-                                authorId={comment.authorId}
-                                postId={comment.id}
+                                postOwnerId={postOwnerId}
+                                currentUserId={currentUser.profileId}
+                                commentOwnerId={comment.authorId}
+                                commentId={comment.id}
+                                onPostDeleted={() => mutate()}
                             />
                         </div>
                     </div>
@@ -67,7 +78,7 @@ export function Comment({
             </section>
             <footer className="ml-10 mt-3 text-neutral-500">
                 <ReactionButton
-                    currentUserToken={currentUserToken}
+                    currentUserToken={currentUser.token}
                     {...comment}
                 />
             </footer>

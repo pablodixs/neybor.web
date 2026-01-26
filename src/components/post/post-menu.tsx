@@ -93,7 +93,7 @@ export function PostMenu({
 
         // Focar primeiro botão quando menu abre
         setTimeout(() => {
-            buttonRefs.current[0]?.focus()
+            buttonRefs.current[-1]?.focus()
         }, 100)
 
         return () => {

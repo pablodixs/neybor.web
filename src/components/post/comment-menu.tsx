@@ -1,14 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import {
-    BookmarkSimpleIcon,
-    DotsThreeIcon,
-    ExportIcon,
-    EyeIcon,
-    MegaphoneIcon,
-    TrashIcon,
-} from '@phosphor-icons/react'
+import { DotsThreeIcon, MegaphoneIcon, TrashIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
@@ -19,15 +12,19 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 interface PostMenuProps {
     disabled?: boolean
-    postId: number
+    commentId: number
     onPostDeleted?: () => void
-    authorId: number | undefined
+    currentUserId: number | undefined
+    postOwnerId: number | undefined
+    commentOwnerId: number | undefined
 }
 
 export function CommentMenu({
     disabled = false,
-    postId,
-    authorId,
+    commentId,
+    currentUserId,
+    postOwnerId,
+    commentOwnerId,
     onPostDeleted,
 }: PostMenuProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -91,7 +88,7 @@ export function CommentMenu({
 
         // Focar primeiro botão quando menu abre
         setTimeout(() => {
-            buttonRefs.current[0]?.focus()
+            buttonRefs.current[-1]?.focus()
         }, 100)
 
         return () => {
@@ -103,11 +100,15 @@ export function CommentMenu({
 
     const handleSave = async () => {
         try {
-            await axios.post(`${API_URL}/post/${postId}/save`, null, {
-                headers: {
-                    Authorization: `Bearer ${session?.user?.token}`,
+            await axios.post(
+                `${API_URL}/post/comment/${commentId}/save`,
+                null,
+                {
+                    headers: {
+                        Authorization: `Bearer ${session?.user?.token}`,
+                    },
                 },
-            })
+            )
             // TODO: Adicionar feedback visual de sucesso
             console.log('Post salvo com sucesso')
         } catch (error) {
@@ -118,31 +119,6 @@ export function CommentMenu({
         }
     }
 
-    const handleShare = async () => {
-        const postUrl = `${window.location.origin}/post/${postId}`
-
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'Compartilhar post',
-                    url: postUrl,
-                })
-            } catch {
-                console.log('Compartilhamento cancelado')
-            }
-        } else {
-            // Fallback: copiar URL para clipboard
-            try {
-                await navigator.clipboard.writeText(postUrl)
-                // TODO: Adicionar feedback visual
-                console.log('Link copiado para a área de transferência')
-            } catch (error) {
-                console.error('Erro ao copiar link:', error)
-            }
-        }
-        setIsMenuOpen(false)
-    }
-
     const handleReport = async () => {
         // TODO: Implementar modal de denúncia com motivos
         const confirmed = confirm('Deseja denunciar este post?')
@@ -150,7 +126,7 @@ export function CommentMenu({
         if (confirmed) {
             try {
                 await axios.post(
-                    `${API_URL}/post/${postId}/report`,
+                    `${API_URL}/post/${commentId}/report`,
                     { reason: 'OTHER' }, // TODO: Coletar motivo do usuário
                     {
                         headers: {
@@ -171,7 +147,7 @@ export function CommentMenu({
         setIsDeleting(true)
         try {
             await axios
-                .delete(`${API_URL}/post/${postId}`, {
+                .delete(`${API_URL}/post/comment/${commentId}`, {
                     headers: {
                         Authorization: `Bearer ${session?.user?.token}`,
                     },
@@ -215,63 +191,47 @@ export function CommentMenu({
                         onClick={(e) => e.stopPropagation()}
                         className="bg-white shadow-xl absolute w-fit top-full right-0 border border-neutral-100 mt-1 origin-top-right p-2 rounded-4xl z-10"
                     >
-                        {session?.user.profileId === authorId && (
-                            <>
-                                <button
-                                    ref={(el) => {
-                                        buttonRefs.current[0] = el
-                                    }}
-                                    onClick={() => setIsDeleteModalOpen(true)}
-                                    className="flex px-4 py-3 rounded-full font-medium text-base cursor-pointer gap-2 items-center whitespace-nowrap hover:bg-red-50 text-red-600 w-full focus:outline-none focus-visible:bg-red-50"
-                                >
-                                    <TrashIcon
-                                        className="text-xl"
-                                        weight="bold"
-                                    />{' '}
-                                    Apagar post
-                                </button>
-                                <button
-                                    ref={(el) => {
-                                        buttonRefs.current[1] = el
-                                    }}
-                                    className="flex px-4 py-3 rounded-full font-medium text-base text-neutral-700 cursor-pointer gap-2 items-center whitespace-nowrap hover:bg-neutral-100 w-full focus:outline-none focus-visible:bg-neutral-100"
-                                >
-                                    <EyeIcon
-                                        className="text-xl"
-                                        weight="bold"
-                                    />{' '}
-                                    Alterar visibilidade
-                                </button>
-                            </>
+                        {currentUserId === postOwnerId ||
+                            (currentUserId === commentOwnerId && (
+                                <>
+                                    <button
+                                        ref={(el) => {
+                                            buttonRefs.current[0] = el
+                                        }}
+                                        onClick={() =>
+                                            setIsDeleteModalOpen(true)
+                                        }
+                                        className="flex px-4 py-3 rounded-full font-medium text-base cursor-pointer gap-2 items-center whitespace-nowrap hover:bg-red-50 text-red-600 w-full focus:outline-none focus-visible:bg-red-50"
+                                    >
+                                        <TrashIcon
+                                            className="text-xl"
+                                            weight="bold"
+                                        />{' '}
+                                        Apagar comentário
+                                    </button>
+                                </>
+                            ))}
+                        {currentUserId !== commentOwnerId && (
+                            <button
+                                ref={(el) => {
+                                    buttonRefs.current[
+                                        session?.user.profileId ===
+                                        currentUserId
+                                            ? 2
+                                            : 0
+                                    ] = el
+                                }}
+                                onClick={handleSave}
+                                className="flex px-4 py-3 rounded-full font-medium text-base text-neutral-700 cursor-pointer gap-2 items-center whitespace-nowrap hover:bg-neutral-100 w-full focus:outline-none focus-visible:bg-neutral-100"
+                            >
+                                <MegaphoneIcon
+                                    className="text-xl"
+                                    weight="bold"
+                                />{' '}
+                                Denunciar comentário...
+                            </button>
                         )}
-                        <button
-                            ref={(el) => {
-                                buttonRefs.current[
-                                    session?.user.profileId === authorId ? 2 : 0
-                                ] = el
-                            }}
-                            onClick={handleSave}
-                            className="flex px-4 py-3 rounded-full font-medium text-base text-neutral-700 cursor-pointer gap-2 items-center whitespace-nowrap hover:bg-neutral-100 w-full focus:outline-none focus-visible:bg-neutral-100"
-                        >
-                            <BookmarkSimpleIcon
-                                className="text-xl"
-                                weight="bold"
-                            />{' '}
-                            Salvar nos Itens Salvos
-                        </button>
-                        <button
-                            ref={(el) => {
-                                buttonRefs.current[
-                                    session?.user.profileId === authorId ? 3 : 1
-                                ] = el
-                            }}
-                            onClick={handleShare}
-                            className="flex px-4 py-3 rounded-full font-medium text-base text-neutral-700 cursor-pointer gap-2 items-center whitespace-nowrap hover:bg-neutral-100 w-full focus:outline-none focus-visible:bg-neutral-100"
-                        >
-                            <ExportIcon className="text-xl" weight="bold" />{' '}
-                            Compartilhar este post...
-                        </button>
-                        {session?.user.profileId !== authorId && (
+                        {session?.user.profileId !== currentUserId && (
                             <button
                                 ref={(el) => {
                                     buttonRefs.current[2] = el
@@ -294,11 +254,11 @@ export function CommentMenu({
                 onClose={() => setIsDeleteModalOpen(false)}
             >
                 <h1 className="font-semibold text-2xl mb-2">
-                    Apagar esse post?
+                    Apagar esse comentário?
                 </h1>
                 <p className="text-neutral-500">
-                    Essa ação não pode ser desfeita, e seu post será removido do
-                    seu perfil e do feed dos seus vizinhos.
+                    Essa ação não pode ser desfeita, e seu comentário será
+                    removido deste post.
                 </p>
                 <div className="flex gap-2 mt-4">
                     <Button

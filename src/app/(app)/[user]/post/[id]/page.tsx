@@ -282,7 +282,7 @@ const PostContent = ({
                             onChange={(e) => setComment(e.target.value)}
                             value={comment}
                             onFocus={() => setIsCommenting(true)}
-                            className="flex-1 resize-none field-sizing-content outline-0 py-2 font-medium focus:bg-neutral-100 px-2 rounded-lg"
+                            className="flex-1 resize-none field-sizing-content outline-0 py-2 font-medium focus:bg-neutral-100 px-2 rounded-lg hover:bg-neutral-50 transition"
                             placeholder="Escreva um comentário"
                         />
                     </div>
@@ -314,9 +314,11 @@ const PostContent = ({
                     <div>
                         {comments.map((comment) => (
                             <Comment
+                                postOwnerId={post.author.id}
                                 handle={post.author.handle}
                                 key={comment.id}
-                                currentUserToken={user.token}
+                                currentUser={user}
+                                mutate={mutate}
                                 {...comment}
                             />
                         ))}
