@@ -17,6 +17,7 @@ export function Navigation({ title, showBackButton = true }: NavigationProps) {
                     <button
                         className="p-2 rounded-full text-neutral-700 bg-neutral-100 hover:bg-neutral-200 cursor-pointer text-lg transition"
                         onClick={() => router.back()}
+                        aria-label="Go back"
                     >
                         <ArrowLeftIcon weight="bold" />
                     </button>

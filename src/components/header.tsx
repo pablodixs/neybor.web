@@ -14,21 +14,31 @@ export function Header() {
                     <Link
                         href={'/feed'}
                         className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
+                        aria-label="Feed"
                     >
                         <HouseIcon weight="regular" />
                     </Link>
-                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
+                    <button
+                        aria-label="Map"
+                        className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
+                    >
                         <MapTrifoldIcon weight="regular" />
                     </button>
-                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
+                    <button
+                        aria-label="Chats"
+                        className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
+                    >
                         <ChatsCircleIcon weight="regular" />
                     </button>
-                    <button className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600">
+                    <button
+                        aria-label="Notifications"
+                        className="text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
+                    >
                         <BellIcon weight="regular" />
                     </button>
                 </div>
                 <div className="w-full flex justify-center">
-                    <Link href={'/feed'}>
+                    <Link href={'/feed'} aria-label="Neybor Home">
                         <svg
                             width="27"
                             height="32"
@@ -52,6 +62,7 @@ export function Header() {
                         className="rounded-full w-full px-4 py-1 border-2 border-neutral-100"
                         type="search"
                         placeholder="Buscar"
+                        aria-label="Search"
                     />
                 </div>
             </div>
