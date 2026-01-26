@@ -32,24 +32,27 @@ export function Comment({
                         alt=""
                         width={32}
                         height={32}
-                        className="rounded-full object-fill h-8 w-8"
+                        className="rounded-full object-fill h-8 w-8 hover:opacity-70 transition"
                     />
                 </Link>
                 <div>
                     <div className="flex justify-between items-center">
                         <div className="flex gap-1 items-center leading-tight">
-                            <strong className="font-semibold text-neutral-700">
+                            <Link
+                                href={`/${comment.authorHandle}`}
+                                className="font-semibold text-neutral-700 hover:opacity-70 transition flex gap-1 items-center"
+                            >
                                 {comment.authorName}
-                            </strong>
-                            {handle === comment.authorHandle ? (
-                                <span className="bg-green-50 text-green-600 text-sm font-semibold rounded-full px-2">
-                                    Autor
-                                </span>
-                            ) : (
-                                <span className="text-neutral-500">
-                                    {comment.authorHandle}
-                                </span>
-                            )}
+                                {handle === comment.authorHandle ? (
+                                    <span className="bg-green-50 text-green-600 text-sm font-semibold rounded-full px-2">
+                                        Autor
+                                    </span>
+                                ) : (
+                                    <span className="text-neutral-500 font-medium">
+                                        {comment.authorHandle}
+                                    </span>
+                                )}
+                            </Link>
                             <span className="text-neutral-500">
                                 ·{' '}
                                 {formatDistanceToNowStrict(
