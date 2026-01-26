@@ -1,13 +1,15 @@
 interface SpinnerProps {
     title?: string
     size?: 'sm' | 'md' | 'lg' | 'xl'
-    color?: 'tint' | 'white'
+    color?: 'tint' | 'white' | 'neutral'
+    inline?: boolean
 }
 
 export function Spinner({
     title = 'Carregando...',
     size = 'md',
     color = 'tint',
+    inline = false,
 }: SpinnerProps) {
     const sizeMap = {
         sm: 18,
@@ -21,7 +23,7 @@ export function Spinner({
     return (
         <>
             <svg
-                className={`${color === 'tint' ? 'stroke-green-600' : 'stroke-white'} mx-auto my-2`}
+                className={`${color === 'tint' ? 'stroke-green-600' : color === 'neutral' ? 'stroke-neutral-500' : 'stroke-white'} ${inline ? 'inline-block' : 'block mx-auto'} my-2`}
                 width={dimension}
                 height={dimension}
                 viewBox="0 0 24 24"

@@ -44,6 +44,7 @@ export interface PostProps {
     myReactionType: string
     reactionsCount: number
     commentsCount: number
+    isBookmarked: boolean
 }
 
 interface PostComponentProps {
@@ -146,6 +147,8 @@ export function Post({
                         authorId={data.author.id}
                         postId={data.id}
                         onPostDeleted={onPostDeleted}
+                        isBookmarked={data.isBookmarked}
+                        onPostSaved={() => mutate()}
                     />
                 </div>
             </header>

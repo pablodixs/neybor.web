@@ -87,7 +87,9 @@ export default function PostPage() {
                     <PostMenu
                         postId={Number(data?.id)}
                         authorId={data?.author.id}
+                        isBookmarked={data?.isBookmarked}
                         onPostDeleted={onPostDeleted}
+                        onPostSaved={() => mutate()}
                     />
                 </div>
             </section>

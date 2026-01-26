@@ -14,6 +14,7 @@ import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import { Portal } from '../portal'
 import { Button } from '../button'
+import { Spinner } from '../spinner'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
@@ -21,8 +22,10 @@ interface PostMenuProps {
     disabled?: boolean
     postId: number
     onPostDeleted?: () => void
+    onPostSaved?: () => void
     authorId: number | undefined
     buttonSize?: 'small' | 'default'
+    isBookmarked?: boolean
 }
 
 export function PostMenu({
@@ -31,10 +34,13 @@ export function PostMenu({
     authorId,
     onPostDeleted,
     buttonSize = 'default',
+    isBookmarked,
+    onPostSaved,
 }: PostMenuProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [isSavingToBookmarks, setIsSavingToBookmarks] = useState(false)
 
     const menuRef = useRef<HTMLDivElement>(null)
     const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
@@ -104,18 +110,19 @@ export function PostMenu({
     }, [isMenuOpen])
 
     const handleSave = async () => {
+        setIsSavingToBookmarks(true)
         try {
-            await axios.post(`${API_URL}/post/${postId}/save`, null, {
+            await axios.post(`${API_URL}/post/${postId}/bookmark`, null, {
                 headers: {
                     Authorization: `Bearer ${session?.user?.token}`,
                 },
             })
-            // TODO: Adicionar feedback visual de sucesso
             console.log('Post salvo com sucesso')
         } catch (error) {
             console.error('Erro ao salvar post:', error)
-            // TODO: Adicionar feedback visual de erro
         } finally {
+            onPostSaved?.()
+            setIsSavingToBookmarks(false)
             setIsMenuOpen(false)
         }
     }
@@ -246,21 +253,57 @@ export function PostMenu({
                                 </button>
                             </>
                         )}
-                        <button
-                            ref={(el) => {
-                                buttonRefs.current[
-                                    session?.user.profileId === authorId ? 2 : 0
-                                ] = el
-                            }}
-                            onClick={handleSave}
-                            className="flex px-4 py-3 rounded-full font-medium text-base text-neutral-700 cursor-pointer gap-2 items-center whitespace-nowrap hover:bg-neutral-100 w-full focus:outline-none focus-visible:bg-neutral-100"
-                        >
-                            <BookmarkSimpleIcon
-                                className="text-xl"
-                                weight="bold"
-                            />{' '}
-                            Salvar nos Itens Salvos
-                        </button>
+                        {!isBookmarked ? (
+                            <button
+                                ref={(el) => {
+                                    buttonRefs.current[
+                                        session?.user.profileId === authorId
+                                            ? 2
+                                            : 0
+                                    ] = el
+                                }}
+                                disabled={isSavingToBookmarks}
+                                onClick={handleSave}
+                                className="max-h-12 flex px-4 py-3 rounded-full font-medium text-base text-neutral-700 cursor-pointer gap-2 items-center whitespace-nowrap hover:bg-neutral-100 w-full focus:outline-none focus-visible:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSavingToBookmarks ? (
+                                    <Spinner inline color="neutral" />
+                                ) : (
+                                    <BookmarkSimpleIcon
+                                        className="text-xl"
+                                        weight="bold"
+                                    />
+                                )}{' '}
+                                {isSavingToBookmarks
+                                    ? 'Salvando...'
+                                    : 'Salvar nos Itens Salvos'}
+                            </button>
+                        ) : (
+                            <button
+                                ref={(el) => {
+                                    buttonRefs.current[
+                                        session?.user.profileId === authorId
+                                            ? 2
+                                            : 0
+                                    ] = el
+                                }}
+                                disabled={isSavingToBookmarks}
+                                onClick={handleSave}
+                                className="max-h-12 flex px-4 py-3 rounded-full font-medium text-base text-neutral-700 cursor-pointer gap-2 items-center whitespace-nowrap hover:bg-neutral-100 w-full focus:outline-none focus-visible:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSavingToBookmarks ? (
+                                    <Spinner inline color="neutral" />
+                                ) : (
+                                    <BookmarkSimpleIcon
+                                        className="text-xl"
+                                        weight="fill"
+                                    />
+                                )}{' '}
+                                {isSavingToBookmarks
+                                    ? 'Apagando...'
+                                    : 'Apagar dos Itens Salvos'}
+                            </button>
+                        )}
                         <button
                             ref={(el) => {
                                 buttonRefs.current[
