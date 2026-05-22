@@ -1,13 +1,13 @@
 'use client'
 
+import Link from 'next/link'
+import { signIn } from 'next-auth/react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { FormEvent, useState } from 'react'
+import { EyeIcon, EyeSlashIcon, WarningIcon } from '@phosphor-icons/react'
+
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
-import { EyeIcon, EyeSlashIcon } from '@phosphor-icons/react'
-import { WarningIcon } from '@phosphor-icons/react/dist/ssr'
-import { signIn } from 'next-auth/react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { FormEvent, useState } from 'react'
 
 const ERROR_MESSAGES: Record<string, string> = {
     'Please check the provided fields.':
@@ -17,6 +17,10 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export default function Page() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+
+    const callbackUrl = searchParams.get('callbackUrl') || '/feed'
+
     const [showPassword, setShowPassword] = useState(false)
     const [authCredentials, setAuthCredentials] = useState({
         email: '',
@@ -26,14 +30,16 @@ export default function Page() {
     const [isLoading, setIsLoading] = useState(false)
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        setIsLoading(true)
         event.preventDefault()
+
+        setIsLoading(true)
         setError(null)
 
         const result = await signIn('credentials', {
             redirect: false,
             username: authCredentials.email,
             password: authCredentials.password,
+            callbackUrl,
         })
 
         if (result?.error) {
@@ -44,7 +50,8 @@ export default function Page() {
             return
         }
 
-        router.push('/feed')
+        setIsLoading(false)
+        router.replace(result?.url || callbackUrl)
     }
 
     return (

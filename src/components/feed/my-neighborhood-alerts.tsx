@@ -187,7 +187,7 @@ export function MyNeighborhoodAlerts() {
             )}
             <section className="mt-4 pt-3 border-t border-neutral-100 text-neutral-600 leading-tight">
                 <Link
-                    href={'#'}
+                    href={'/alerts'}
                     className="flex items-center justify-between font-semibold hover:text-green-600 transition"
                 >
                     Ver alertas{' '}

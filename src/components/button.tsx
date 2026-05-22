@@ -3,7 +3,7 @@ import { ButtonHTMLAttributes } from 'react'
 import { Spinner } from './spinner'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'bordered' | 'danger'
+    variant?: 'primary' | 'secondary' | 'bordered' | 'danger' | 'ghost'
     icon?: Icon
     iconPlacement?: 'leading' | 'trailing'
     textAlign?: 'left' | 'center' | 'right'
@@ -19,6 +19,7 @@ const VARIANT_CLASSES = {
     bordered:
         'outline outline-2 outline-neutral-100 -outline-offset-2 text-neutral-800 hover:bg-neutral-100',
     danger: 'bg-red-600 hover:bg-red-700 text-white',
+    ghost: 'bg-transparent hover:bg-neutral-100 text-neutral-800',
     sm: 'text-sm px-3 py-1.5',
     md: 'text-md px-4 py-2 min-h-10',
     lg: 'text-lg px-5 py-3',
