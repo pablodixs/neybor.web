@@ -23,7 +23,7 @@ import { Tooltip } from '../tooltip'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-interface UserLocation {
+export interface UserLocation {
     city: string
     neighborhood: string
     longitude: number

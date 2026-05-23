@@ -1,9 +1,10 @@
 import { Navigation } from '@/components/navigation'
+import { PageContainer } from '@/components/page-container'
 
 export default function EventsPage() {
     return (
-        <div className="p-4 border border-neutral-100 rounded-2xl bg-white">
+        <PageContainer>
             <Navigation title="Eventos" showBackButton={false} />
-        </div>
+        </PageContainer>
     )
 }
