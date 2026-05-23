@@ -125,7 +125,7 @@ const CategoryBadge = ({ category }: { category: string }) => {
 
 const AlertCard = ({ alert }: { alert: AlertResponse }) => {
     return (
-        <div className="p-4 border-2 border-neutral-200 rounded-xl mb-4">
+        <div className="p-4 border-2 border-neutral-100 rounded-xl mb-4">
             <header className="flex justify-between items-center mb-2">
                 <CategoryBadge category={alert.category.toLocaleString()} />
                 <SeverityBadge severity={alert.severity} />

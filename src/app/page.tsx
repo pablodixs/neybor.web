@@ -50,11 +50,18 @@ export default function Home() {
                     )}
                 </div>
             </header>
-            <section className="mx-8 p-8 rounded-3xl bg-center bg-[url('https://images.unsplash.com/photo-1760019736826-266c0f673d21?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] h-[80dvh] flex items-end justify-between">
-                <h2 className="text-6xl text-shadow-lg text-white mb-4 font-semibold tracking-tight leading-tight text-balance">
-                    Conecte-se com <br /> quem está ao seu lado
-                </h2>
-                <div className="bg-white p-8 rounded-2xl w-[500px] max-w-full shadow-lg text-center">
+            <div className="max-h-[70dvh] flex justify-between max-w-7xl mx-auto ">
+                <video
+                    className="h-full max-h-200"
+                    src="/videos/hero_video.mp4"
+                    autoPlay
+                    loop
+                    muted
+                ></video>
+                <div className="bg-white p-8 rounded-2xl w-125 max-w-full shadow-lg text-center">
+                    <h2 className="text-3xl mb-4 font-semibold tracking-tight leading-tight text-balance">
+                        Conecte-se com <br /> quem está ao seu lado
+                    </h2>
                     <div className="flex flex-col gap-4">
                         <div className="flex gap-2 justify-between">
                             <button className="px-4 py-3 cursor-pointer bg-neutral-100 rounded-full font-semibold hover:bg-neutral-200 transition">
@@ -87,15 +94,15 @@ export default function Home() {
                         </button>
                     </div>
                 </div>
-            </section>
-            <section className="max-w-[1000px] mx-auto py-30">
+            </div>
+            <section className="max-w-250 mx-auto py-30">
                 <p className="font-semibold mb-8 text-center text-4xl tracking-tight leading-tight text-pretty">
                     O Neybor facilita a troca de serviços, o comércio local e a
                     comunicação entre vizinhos. Tudo em um só lugar, de forma
                     segura e intuitiva.
                 </p>
             </section>
-            <footer className="max-w-[1000px] mx-auto py-4 text-sm text-neutral-500 border-t border-t-neutral-200">
+            <footer className="max-w-250 mx-auto py-4 text-sm text-neutral-500 border-t border-t-neutral-200">
                 <p>&copy; 2026 Scriptles</p>
             </footer>
         </>
