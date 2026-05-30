@@ -5,7 +5,6 @@ import Map, { Marker, MapRef } from 'react-map-gl/mapbox'
 
 import { PageContainer } from '@/components/page-container'
 
-// @ts-expect-error - mapbox CSS is imported for side effects
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Button } from '@/components/button'
 import { GpsFixIcon } from '@phosphor-icons/react'

@@ -1,6 +1,14 @@
 // next-auth.d.ts
 import { DefaultSession } from 'next-auth'
 
+type SessionInfo = {
+    ipAddress: string
+    userAgent: string
+    deviceName: string
+    browser: string
+    os: string
+}
+
 declare module 'next-auth' {
     interface Session {
         user: {
@@ -10,6 +18,8 @@ declare module 'next-auth' {
             avatarUrl: string
             displayName: string
         } & DefaultSession['user']
+        info?: SessionInfo
+        error?: 'RefreshAccessTokenError'
     }
 
     interface User {
@@ -18,6 +28,8 @@ declare module 'next-auth' {
         type: string
         avatarUrl: string
         displayName: string
+        accessTokenExpires: number
+        sessionInfo: SessionInfo
     }
 }
 
@@ -28,5 +40,8 @@ declare module 'next-auth/jwt' {
         type: string
         avatarUrl: string
         displayName: string
+        accessTokenExpires?: number
+        sessionInfo?: SessionInfo
+        error?: 'RefreshAccessTokenError'
     }
 }

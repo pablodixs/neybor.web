@@ -13,7 +13,7 @@ import Link from 'next/link'
 
 export default function SettingsPage() {
     return (
-        <div className="p-4 border border-neutral-100 rounded-2xl bg-white">
+        <>
             <Navigation showBackButton={false} title="Preferências" />
             <section className="flex flex-col gap-1">
                 <Link
@@ -36,7 +36,7 @@ export default function SettingsPage() {
                     <LockSimpleIcon size={20} weight="bold" /> Privacidade
                 </Link>
                 <Link
-                    href={'/settings/profile'}
+                    href={'/settings/security'}
                     className="flex px-4 py-3 items-center gap-3 font-medium w-full rounded-full hover:bg-neutral-100 transition cursor-pointer"
                 >
                     <PasswordIcon size={20} weight="bold" /> Segurança
@@ -48,6 +48,6 @@ export default function SettingsPage() {
                     <SignOutIcon size={20} weight="bold" /> Sair
                 </button>
             </section>
-        </div>
+        </>
     )
 }
