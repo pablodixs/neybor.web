@@ -9,6 +9,20 @@ export interface ContactFieldResponse {
     verified: boolean
 }
 
+export enum Gender {
+    MALE = 'MALE',
+    FEMALE = 'FEMALE',
+    OTHER = 'OTHER',
+    PREFER_NOT_TO_SAY = 'PREFER_NOT_TO_SAY',
+}
+
+export const genderLabels: Record<Gender, string> = {
+    [Gender.MALE]: 'Masculino',
+    [Gender.FEMALE]: 'Feminino',
+    [Gender.OTHER]: 'Outro',
+    [Gender.PREFER_NOT_TO_SAY]: 'Prefiro não informar',
+}
+
 export interface AccountInfoResponse {
     id: number
     username: string
@@ -16,7 +30,7 @@ export interface AccountInfoResponse {
     phone: ContactFieldResponse
     email: ContactFieldResponse
     birthDate: string
-    gender: string
+    gender: Gender | null
     createdAt: string
 }
 

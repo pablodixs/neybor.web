@@ -116,7 +116,7 @@ export default function PhoneInfoPage() {
                     Verificar número de telefone
                 </Button>
             )}
-            {error && (
+            {error && allowEditing && (
                 <p className="font-semibold text-sm text-red-600">{error}</p>
             )}
             <footer className="flex gap-2 items-center justify-end mt-4">

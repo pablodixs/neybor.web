@@ -9,8 +9,9 @@ import {
 import { Navigation } from '@/components/navigation'
 import { Spinner } from '@/components/spinner'
 import { Tooltip } from '@/components/tooltip'
-import { useAccountInfo } from '../../account-request'
+import { genderLabels, useAccountInfo } from '../../account-request'
 import { formatPhone } from '@/utils/phone-formatter'
+import { formatShortBirthDate } from '@/utils/date-formatters'
 
 export default function InfoPage() {
     const { data: account, isLoading } = useAccountInfo()
@@ -103,7 +104,10 @@ export default function InfoPage() {
                         </div>
                         <CaretRightIcon className="text-lg text-neutral-400" />
                     </Link>
-                    <Link className="flex items-center" href={'#'}>
+                    <Link
+                        className="flex items-center"
+                        href={'/settings/account/info/birthdate'}
+                    >
                         <div className="flex-1">
                             <b className="text-sm font-semibold">
                                 Data de nascimento
@@ -112,23 +116,23 @@ export default function InfoPage() {
                                 <NotInformedLabel />
                             ) : (
                                 <p className="text-neutral-600">
-                                    {formatDate(
-                                        account.birthDate,
-                                        'dd/MM/yyyy',
-                                    )}
+                                    {formatShortBirthDate(account.birthDate)}
                                 </p>
                             )}
                         </div>
                         <CaretRightIcon className="text-lg text-neutral-400" />
                     </Link>
-                    <Link className="flex items-center" href={'#'}>
+                    <Link
+                        className="flex items-center"
+                        href={'/settings/account/info/gender'}
+                    >
                         <div className="flex-1">
                             <b className="text-sm font-semibold">Gênero</b>
                             {account.gender === null ? (
                                 <NotInformedLabel />
                             ) : (
                                 <p className="text-neutral-600">
-                                    {account.gender}
+                                    {genderLabels[account.gender]}
                                 </p>
                             )}
                         </div>
