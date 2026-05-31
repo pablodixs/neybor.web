@@ -12,6 +12,7 @@ import { Tooltip } from '@/components/tooltip'
 import { genderLabels, useAccountInfo } from '../../account-request'
 import { formatPhone } from '@/utils/phone-formatter'
 import { formatShortBirthDate } from '@/utils/date-formatters'
+import { LABEL_STYLES } from '../../styles'
 
 export default function InfoPage() {
     const { data: account, isLoading } = useAccountInfo()
@@ -34,10 +35,8 @@ export default function InfoPage() {
                 <section className="flex flex-col gap-4">
                     <Link className="flex items-center" href={'#'}>
                         <div className="flex-1">
-                            <b className="text-sm font-semibold">
-                                Nome de usuário
-                            </b>
-                            <p className="text-neutral-600">
+                            <b className={LABEL_STYLES}>Nome de usuário</b>
+                            <p className="text-neutral-800 font-semibold">
                                 @{account.username}
                             </p>
                         </div>
@@ -45,8 +44,8 @@ export default function InfoPage() {
                     </Link>
                     <Link className="flex items-center" href={'#'}>
                         <div className="flex-1">
-                            <b className="text-sm font-semibold">Nome</b>
-                            <p className="text-neutral-600">
+                            <b className={LABEL_STYLES}>Nome</b>
+                            <p className="text-neutral-800 font-semibold">
                                 {account.displayName}
                             </p>
                         </div>
@@ -57,12 +56,12 @@ export default function InfoPage() {
                         href={'/settings/account/info/phone'}
                     >
                         <div className="flex-1">
-                            <b className="text-sm font-semibold">Celular</b>
+                            <b className={LABEL_STYLES}>Celular</b>
                             {account.phone.value === null ? (
                                 <NotInformedLabel />
                             ) : (
                                 <div className="flex gap-1 items-center">
-                                    <p className="text-neutral-600">
+                                    <p className="text-neutral-800 font-semibold">
                                         {formatPhone(account.phone.value)}
                                     </p>
                                     {!account.phone.verified && (
@@ -83,12 +82,12 @@ export default function InfoPage() {
                         href={'/settings/account/info/email'}
                     >
                         <div className="flex-1">
-                            <b className="text-sm font-semibold">E-mail</b>
+                            <b className={LABEL_STYLES}>E-mail</b>
                             {account.email.value === null ? (
                                 <NotInformedLabel />
                             ) : (
                                 <div className="flex gap-1 items-center">
-                                    <p className="text-neutral-600">
+                                    <p className="text-neutral-800 font-semibold">
                                         {account.email.value}{' '}
                                     </p>
                                     {!account.email.verified && (
@@ -109,13 +108,11 @@ export default function InfoPage() {
                         href={'/settings/account/info/birthdate'}
                     >
                         <div className="flex-1">
-                            <b className="text-sm font-semibold">
-                                Data de nascimento
-                            </b>
+                            <b className={LABEL_STYLES}>Data de nascimento</b>
                             {account.birthDate === null ? (
                                 <NotInformedLabel />
                             ) : (
-                                <p className="text-neutral-600">
+                                <p className="text-neutral-800 font-semibold">
                                     {formatShortBirthDate(account.birthDate)}
                                 </p>
                             )}
@@ -127,11 +124,11 @@ export default function InfoPage() {
                         href={'/settings/account/info/gender'}
                     >
                         <div className="flex-1">
-                            <b className="text-sm font-semibold">Gênero</b>
+                            <b className={LABEL_STYLES}>Gênero</b>
                             {account.gender === null ? (
                                 <NotInformedLabel />
                             ) : (
-                                <p className="text-neutral-600">
+                                <p className="text-neutral-800 font-semibold">
                                     {genderLabels[account.gender]}
                                 </p>
                             )}
@@ -141,20 +138,23 @@ export default function InfoPage() {
                     <hr className="border-t border-neutral-100" />
                     <Link className="flex items-center" href={'#'}>
                         <div className="flex-1">
-                            <b className="text-sm font-semibold">
-                                Verificação da conta
-                            </b>
-                            <p className="text-neutral-600">Verificado</p>
+                            <b className={LABEL_STYLES}>Verificação da conta</b>
+                            <p className="text-neutral-800 font-semibold">
+                                Verificado
+                            </p>
                         </div>
                         <CaretRightIcon className="text-lg text-neutral-400" />
                     </Link>
                     <div className="flex items-center">
                         <div className="flex-1">
-                            <b className="text-sm font-semibold">
+                            <b className={LABEL_STYLES}>
                                 Data de criação da conta
                             </b>
-                            <p className="text-neutral-600">
-                                {formatDate(account.createdAt, 'dd/MM/yyyy')}
+                            <p className="text-neutral-800 font-semibold">
+                                {formatDate(
+                                    account.createdAt,
+                                    `dd/MM/yyyy HH:mm:ss`,
+                                )}
                             </p>
                         </div>
                     </div>
