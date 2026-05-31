@@ -20,8 +20,8 @@ const PREFERENCES_LINKS = [
     },
     {
         icon: UserListIcon,
-        label: 'Informações da conta',
-        href: '/settings/profile',
+        label: 'Sua conta',
+        href: '/settings/account',
     },
     {
         icon: LockSimpleIcon,
