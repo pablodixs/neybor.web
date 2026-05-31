@@ -12,7 +12,7 @@ export function PageContainer({
     const paddingClasses = padding === 'default' ? 'p-4' : 'p-0'
     return (
         <div
-            className={`${paddingClasses} border border-neutral-100 rounded-2xl bg-white overflow-hidden relative`}
+            className={`${paddingClasses} border border-neutral-100 rounded-2xl bg-white overflow-hidden relative mb-4`}
         >
             {children}
         </div>
