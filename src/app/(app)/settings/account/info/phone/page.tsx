@@ -24,6 +24,7 @@ export default function PhoneInfoPage() {
     const [rawphoneNumber, setRawPhoneNumber] = useState(phone?.value || '')
     const [showAddPhoneModal, setShowAddPhoneModal] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     function handleSavePhoneNumber() {
         setIsLoading(true)
@@ -44,7 +45,7 @@ export default function PhoneInfoPage() {
                 mutate()
             })
             .catch((e) => {
-                console.error(e)
+                setError(e.response?.data?.message)
             })
             .finally(() => {
                 setIsLoading(false)
@@ -58,7 +59,7 @@ export default function PhoneInfoPage() {
 
     const validInput =
         (rawphoneNumber.replace(/\D/g, '').length >= 10 &&
-            rawphoneNumber.replace(/\D/g, '').length <= 10) ||
+            rawphoneNumber.replace(/\D/g, '').length <= 11) ||
         rawphoneNumber === phone?.value
 
     if (phone?.value === null)
@@ -101,14 +102,22 @@ export default function PhoneInfoPage() {
                 disabled={!allowEditing}
                 readOnly={!allowEditing}
                 placeholder="Número de telefone"
+                data-valid={[validInput]}
                 onChange={(e) => setRawPhoneNumber(e.target.value)}
                 value={formatPhone(rawphoneNumber)}
-                className="w-full border-b-2 border-neutral-200 py-1 mb-1 outline-none font-semibold focus:border-green-600 disabled:border-neutral-100 read-only:border-0 transition-all duration-100"
+                className="w-full border-b-2 border-neutral-200 py-1 mb-1 outline-none font-semibold focus:border-green-600 disabled:border-neutral-100 read-only:border-0 data-[valid=true]:focus:border-green-600 data-[valid=false]:focus:border-red-500 data-[valid=false]:border-red-500 transition-all duration-100"
             />
             {!allowEditing && !account?.phone.verified && (
-                <Button icon={DeviceMobileCameraIcon} fullWidth>
+                <Button
+                    icon={DeviceMobileCameraIcon}
+                    iconPlacement="leading"
+                    fullWidth
+                >
                     Verificar número de telefone
                 </Button>
+            )}
+            {error && (
+                <p className="font-semibold text-sm text-red-600">{error}</p>
             )}
             <footer className="flex gap-2 items-center justify-end mt-4">
                 {!allowEditing && (

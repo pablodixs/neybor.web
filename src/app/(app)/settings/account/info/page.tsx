@@ -77,7 +77,10 @@ export default function InfoPage() {
                         </div>
                         <CaretRightIcon className="text-lg text-neutral-400" />
                     </Link>
-                    <Link className="flex items-center" href={'#'}>
+                    <Link
+                        className="flex items-center"
+                        href={'/settings/account/info/email'}
+                    >
                         <div className="flex-1">
                             <b className="text-sm font-semibold">E-mail</b>
                             {account.email.value === null ? (

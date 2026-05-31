@@ -21,15 +21,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_CLASSES = {
-    primary: 'bg-green-600 hover:bg-green-700 text-white',
-    secondary: 'bg-neutral-100 hover:bg-neutral-200 text-neutral-900',
+    primary: 'bg-green-600 hover:bg-green-700 text-white active:bg-green-900',
+    secondary:
+        'bg-neutral-100 hover:bg-neutral-200 text-neutral-900 active:bg-neutral-300',
     bordered:
-        'outline outline-2 outline-neutral-100 -outline-offset-2 text-neutral-800 hover:bg-neutral-100',
+        'outline outline-2 outline-neutral-100 -outline-offset-2 text-neutral-800 hover:bg-neutral-100 active:bg-neutral-200',
     borderedDestructive:
-        'outline outline-2 outline-red-100 -outline-offset-2 text-red-600 hover:bg-red-100',
-    danger: 'bg-red-600 hover:bg-red-700 text-white',
-    ghost: 'bg-transparent hover:bg-neutral-100 text-neutral-800',
-    ghostDestructive: 'bg-transparent hover:bg-red-100 text-red-600',
+        'outline outline-2 outline-red-100 -outline-offset-2 text-red-600 hover:bg-red-100 active:bg-red-200',
+    danger: 'bg-red-600 hover:bg-red-700 text-white active:bg-red-900',
+    ghost: 'bg-transparent hover:bg-neutral-100 text-neutral-800 active:bg-neutral-200',
+    ghostDestructive:
+        'bg-transparent hover:bg-red-100 text-red-600 active:bg-red-200',
     sm: 'text-sm px-3 py-1.5',
     md: 'text-md px-4 py-2 min-h-10',
     lg: 'text-lg px-5 py-3',
