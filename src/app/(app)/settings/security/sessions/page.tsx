@@ -54,7 +54,7 @@ export default function SessionsPage() {
 
     return (
         <>
-            <Navigation title="Sessões" />
+            <Navigation title="Dispositivos conectados" />
             <p className="text-sm text-neutral-500 mb-4">
                 Veja os dispositivos onde sua conta do Neybor está conectada ou
                 foi utilizada recentemente.{' '}

@@ -1,46 +1,53 @@
 'use client'
 
-import { Navigation } from '@/components/navigation'
+import { signOut } from 'next-auth/react'
 import {
     LockSimpleIcon,
     PasswordIcon,
     PencilSimpleIcon,
     UserListIcon,
-} from '@phosphor-icons/react'
-import { SignOutIcon } from '@phosphor-icons/react/dist/ssr'
-import { signOut } from 'next-auth/react'
-import Link from 'next/link'
+    SignOutIcon,
+} from '@phosphor-icons/react/dist/ssr'
+
+import { Navigation } from '@/components/navigation'
+import { SectionLink } from './security/components/section_link'
+
+const PREFERENCES_LINKS = [
+    {
+        icon: PencilSimpleIcon,
+        label: 'Editar perfil',
+        href: '/settings/profile',
+    },
+    {
+        icon: UserListIcon,
+        label: 'Informações da conta',
+        href: '/settings/profile',
+    },
+    {
+        icon: LockSimpleIcon,
+        label: 'Privacidade',
+        href: '/settings/privacy',
+    },
+    {
+        icon: PasswordIcon,
+        label: 'Segurança',
+        href: '/settings/security',
+    },
+]
 
 export default function SettingsPage() {
     return (
         <>
             <Navigation showBackButton={false} title="Preferências" />
             <section className="flex flex-col gap-1">
-                <Link
-                    href={'/settings/profile'}
-                    className="flex px-4 py-3 items-center gap-3 font-medium w-full rounded-full hover:bg-neutral-100 transition cursor-pointer"
-                >
-                    <PencilSimpleIcon size={20} weight="bold" /> Editar perfil
-                </Link>
-                <Link
-                    href={'/settings/profile'}
-                    className="flex px-4 py-3 items-center gap-3 font-medium w-full rounded-full hover:bg-neutral-100 transition cursor-pointer"
-                >
-                    <UserListIcon size={20} weight="bold" /> Informações da
-                    conta
-                </Link>
-                <Link
-                    href={'/settings/profile'}
-                    className="flex px-4 py-3 items-center gap-3 font-medium w-full rounded-full hover:bg-neutral-100 transition cursor-pointer"
-                >
-                    <LockSimpleIcon size={20} weight="bold" /> Privacidade
-                </Link>
-                <Link
-                    href={'/settings/security'}
-                    className="flex px-4 py-3 items-center gap-3 font-medium w-full rounded-full hover:bg-neutral-100 transition cursor-pointer"
-                >
-                    <PasswordIcon size={20} weight="bold" /> Segurança
-                </Link>
+                {PREFERENCES_LINKS.map((link) => (
+                    <SectionLink
+                        key={link.href}
+                        href={link.href}
+                        icon={link.icon}
+                        label={link.label}
+                    />
+                ))}
                 <button
                     onClick={() => signOut()}
                     className="flex px-4 py-3 items-center gap-3 font-medium w-full rounded-full hover:bg-red-50 hover:text-red-600 transition cursor-pointer"
