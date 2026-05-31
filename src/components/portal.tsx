@@ -14,7 +14,6 @@ interface PortalProps {
     children: ReactNode
 }
 
-// Minimal portal helper for dialogs and modals with overlay and close affordances.
 export function Portal({
     isOpen,
     onClose,
@@ -83,7 +82,7 @@ export function Portal({
                 aria-modal="true"
                 aria-labelledby="dialog-title"
                 onClick={(event) => event.stopPropagation()}
-                className="relative min-w-80 max-w-lg rounded-4xl bg-white p-6 shadow-xl"
+                className="relative min-w-80 rounded-4xl bg-white p-6 shadow-xl"
             >
                 {children}
             </motion.div>

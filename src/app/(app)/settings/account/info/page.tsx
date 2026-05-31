@@ -10,6 +10,7 @@ import { Navigation } from '@/components/navigation'
 import { Spinner } from '@/components/spinner'
 import { Tooltip } from '@/components/tooltip'
 import { useAccountInfo } from '../../account-request'
+import { formatPhone } from '@/utils/phone-formatter'
 
 export default function InfoPage() {
     const { data: account, isLoading } = useAccountInfo()
@@ -61,7 +62,7 @@ export default function InfoPage() {
                             ) : (
                                 <div className="flex gap-1 items-center">
                                     <p className="text-neutral-600">
-                                        {account.phone.value}
+                                        {formatPhone(account.phone.value)}
                                     </p>
                                     {!account.phone.verified && (
                                         <Tooltip content="Celular não verificado">
