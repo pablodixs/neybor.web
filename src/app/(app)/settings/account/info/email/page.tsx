@@ -8,6 +8,8 @@ import { EnvelopeSimpleIcon } from '@phosphor-icons/react/dist/ssr'
 import { Navigation } from '@/components/navigation'
 import { useAccountInfo } from '../../../account-request'
 import { Button } from '@/components/button'
+import { INPUT_STYLES, PAGE_DESCRIPTION } from '../../../styles'
+import { Divider } from '@/components/divider'
 
 export default function MailInfoPage() {
     const { data: user } = useSession()
@@ -62,6 +64,11 @@ export default function MailInfoPage() {
                     allowEditing ? 'Editando endereço de e-mail...' : 'E-mail'
                 }
             />
+            <p className={PAGE_DESCRIPTION}>
+                Esse email é usado para login, recuperação de conta e avisos
+                importantes sobre sua conta.
+            </p>
+            <Divider />
             <label
                 htmlFor="email"
                 className="text-sm font-semibold text-neutral-500"
@@ -77,7 +84,7 @@ export default function MailInfoPage() {
                 onChange={(e) => setRawEmail(e.target.value)}
                 value={rawEmail}
                 autoComplete="email"
-                className="w-full border-b-2 border-neutral-200 py-1 mb-1 outline-none font-semibold focus:border-green-600 disabled:border-neutral-100 read-only:border-0 data-[valid=true]:focus:border-green-600 data-[valid=false]:focus:border-red-500 data-[valid=false]:border-red-500 transition-all duration-100"
+                className={INPUT_STYLES}
             />
             {!hasChanged && allowEditing && (
                 <p className="font-semibold text-sm text-red-600">
@@ -106,7 +113,7 @@ export default function MailInfoPage() {
                         variant="bordered"
                         onClick={() => setAllowEditing(true)}
                     >
-                        Editar e-mail
+                        Atualizar endereço de e-mail
                     </Button>
                 )}
                 {allowEditing && (

@@ -8,6 +8,7 @@ import { Button } from '@/components/button'
 import { RadioInput } from '@/components/radio-input'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
+import { Divider } from '@/components/divider'
 
 export default function GenderInfoPage() {
     const { data: user } = useSession()
@@ -56,9 +57,11 @@ export default function GenderInfoPage() {
         <>
             <Navigation title="Informações de gênero" />
             <p className="text-neutral-500 mb-4">
-                Veja ou altere o genêro do perfil da sua conta. Esta informação
-                não será exibida publicamente.
+                Essa informação é opcional e pode ser usada para melhorar sua
+                experiência no Neybor. Esta informação não será exibida
+                publicamente.
             </p>
+            <Divider />
             <main className="flex flex-col gap-4">
                 <RadioInput
                     name="gender"

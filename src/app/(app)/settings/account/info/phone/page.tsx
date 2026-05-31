@@ -13,6 +13,8 @@ import { AddPhoneModal } from './components/add-phone-modal'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import { formatPhone } from '@/utils/phone-formatter'
+import { Divider } from '@/components/divider'
+import { INPUT_STYLES, PAGE_DESCRIPTION } from '../../../styles'
 
 export default function PhoneInfoPage() {
     const { data: user } = useSession()
@@ -91,6 +93,12 @@ export default function PhoneInfoPage() {
                         : 'Número de telefone'
                 }
             />
+            <p className={PAGE_DESCRIPTION}>
+                Seu telefone pode ser usado para proteger sua conta e ajudar na
+                recuperação de acesso. Seu número de telefone é privado e não
+                será visível para outros usuários.
+            </p>
+            <Divider />
             <label
                 htmlFor="phone"
                 className="text-sm font-semibold text-neutral-500"
@@ -105,7 +113,7 @@ export default function PhoneInfoPage() {
                 data-valid={[validInput]}
                 onChange={(e) => setRawPhoneNumber(e.target.value)}
                 value={formatPhone(rawphoneNumber)}
-                className="w-full border-b-2 border-neutral-200 py-1 mb-1 outline-none font-semibold focus:border-green-600 disabled:border-neutral-100 read-only:border-0 data-[valid=true]:focus:border-green-600 data-[valid=false]:focus:border-red-500 data-[valid=false]:border-red-500 transition-all duration-100"
+                className={INPUT_STYLES}
             />
             {!allowEditing && !account?.phone.verified && (
                 <Button
