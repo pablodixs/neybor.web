@@ -10,7 +10,7 @@ import {
 } from '@phosphor-icons/react/dist/ssr'
 
 import { Navigation } from '@/components/navigation'
-import { SectionLink } from './security/components/section_link'
+import { SectionLink } from './components/section_link'
 
 const PREFERENCES_LINKS = [
     {

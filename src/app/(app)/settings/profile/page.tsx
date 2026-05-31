@@ -35,7 +35,7 @@ export default function SettingsPage() {
     )
 
     return (
-        <div className="p-4 border border-neutral-100 rounded-2xl bg-white">
+        <>
             <Navigation title="Editar Perfil" />
             <div className="flex flex-col items-center text-center p-4 border-b border-neutral-100">
                 <span className="flex text-3xl text-green-600 bg-green-50 p-4 rounded-full aspect-square w-fit">
@@ -124,6 +124,6 @@ export default function SettingsPage() {
                     </div>
                 </form>
             </section>
-        </div>
+        </>
     )
 }
