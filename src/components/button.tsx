@@ -51,7 +51,7 @@ export function Button({
     return (
         <button
             disabled={activityIndicator || props.disabled}
-            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} text-nowrap flex gap-2 items-center justify-${textAlign} ${VARIANT_CLASSES[size]} cursor-pointer rounded-full font-semibold transition disabled:text-neutral-500 disabled:hover:bg-neutral-300 disabled:bg-neutral-300 disabled:cursor-not-allowed`}
+            className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} text-nowrap flex gap-2 items-center justify-${textAlign} ${VARIANT_CLASSES[size]} cursor-pointer rounded-full font-semibold transition disabled:text-neutral-500 disabled:hover:bg-neutral-100 disabled:bg-neutral-100 disabled:outline-0 disabled:cursor-not-allowed`}
             {...props}
         >
             {Icon && !activityIndicator && iconPlacement === 'leading' && (

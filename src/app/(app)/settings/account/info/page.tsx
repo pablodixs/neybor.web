@@ -46,11 +46,14 @@ export default function InfoPage() {
                         </div>
                         <CaretRightIcon className="text-lg text-neutral-400" />
                     </Link>
-                    <Link className="flex items-center" href={'#'}>
+                    <Link
+                        className="flex items-center"
+                        href={'/settings/account/info/name'}
+                    >
                         <div className="flex-1">
                             <b className={LABEL_STYLES}>Nome</b>
                             <p className={CONTENT_VALUE_STYLES}>
-                                {account.displayName}
+                                {account.displayName.value}
                             </p>
                         </div>
                         <CaretRightIcon className="text-lg text-neutral-400" />

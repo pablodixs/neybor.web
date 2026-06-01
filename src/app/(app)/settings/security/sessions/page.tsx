@@ -102,7 +102,7 @@ const SessionCard = ({ session }: { session: Session }) => {
                     {session.operatingSystem} &bull; {session.ipAddress}
                 </p>
 
-                {!session.current && (
+                {!session.current && session.startedAt && (
                     <>
                         <p className="text-sm">
                             {formatDistanceToNow(session.startedAt, {

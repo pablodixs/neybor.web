@@ -9,6 +9,11 @@ export interface ContactFieldResponse {
     verified: boolean
 }
 
+export interface DisplayNameFieldResponse {
+    value: string
+    canBeUpdated: boolean
+}
+
 export enum Gender {
     MALE = 'MALE',
     FEMALE = 'FEMALE',
@@ -26,7 +31,7 @@ export const genderLabels: Record<Gender, string> = {
 export interface AccountInfoResponse {
     id: number
     username: string
-    displayName: string
+    displayName: DisplayNameFieldResponse
     phone: ContactFieldResponse
     email: ContactFieldResponse
     birthDate: string

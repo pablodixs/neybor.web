@@ -9,6 +9,7 @@ import { RadioInput } from '@/components/radio-input'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import { Divider } from '@/components/divider'
+import { PAGE_DESCRIPTION } from '../../../styles'
 
 export default function GenderInfoPage() {
     const { data: user } = useSession()
@@ -56,7 +57,7 @@ export default function GenderInfoPage() {
     return (
         <>
             <Navigation title="Informações de gênero" />
-            <p className="text-neutral-500 mb-4">
+            <p className={PAGE_DESCRIPTION}>
                 Essa informação é opcional e pode ser usada para melhorar sua
                 experiência no Neybor. Esta informação não será exibida
                 publicamente.
