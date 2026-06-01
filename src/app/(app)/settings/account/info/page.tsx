@@ -37,7 +37,10 @@ export default function InfoPage() {
             )}
             {account && (
                 <section className="flex flex-col gap-4">
-                    <Link className="flex items-center" href={'#'}>
+                    <Link
+                        className="flex items-center"
+                        href={'/settings/account/info/handle'}
+                    >
                         <div className="flex-1">
                             <b className={LABEL_STYLES}>Nome de usuário</b>
                             <p className={CONTENT_VALUE_STYLES}>
