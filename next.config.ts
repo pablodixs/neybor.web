@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
                 hostname: 'github.com',
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'assets-neybor.s3.amazonaws.com',
+                pathname: '/**',
+            },
         ],
     },
     async headers() {
