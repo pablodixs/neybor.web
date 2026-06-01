@@ -7,13 +7,12 @@ import { useSession } from 'next-auth/react'
 
 import { Button } from '@/components/button'
 import { Divider } from '@/components/divider'
-import { Input } from '@/components/input'
 import { Navigation } from '@/components/navigation'
 import { ProfileProps } from '@/components/profile-page/profile-header'
 import { Spinner } from '@/components/spinner'
 import { fetcherWithToken } from '@/lib/swr'
 import { InfoIcon, TrashIcon, UploadSimpleIcon } from '@phosphor-icons/react'
-import { PAGE_DESCRIPTION } from '../styles'
+import { INPUT_STYLES, LABEL_STYLES, PAGE_DESCRIPTION } from '../styles'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -21,6 +20,7 @@ export default function SettingsPage() {
     const [userData, setUserData] = useState<ProfileProps | null>(null)
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
     const [avatarUploadError, setAvatarUploadError] = useState('')
+    const [allowEditing, setAllowEditing] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const { data: user } = useSession()
@@ -157,21 +157,19 @@ export default function SettingsPage() {
                         </p>
                     )}
                 </div>
-                <span className="px-4 py-3 bg-neutral-100 text-neutral-700 rounded-lg flex gap-2 mb-4 items-center">
+                <span className="px-4 py-3 bg-neutral-100 text-neutral-700 text-sm rounded-lg flex gap-2 mb-4 items-center">
                     <InfoIcon size={20} />
                     Sua foto de perfil é pública para todos os usuários do
                     Neybor.
                 </span>
                 <form>
                     <div>
-                        <label
-                            className="font-medium text-sm text-neutral-600"
-                            htmlFor="name"
-                        >
+                        <label className={LABEL_STYLES} htmlFor="name">
                             Nome
                         </label>
-                        <Input
-                            fullWidth
+                        <input
+                            className={`${INPUT_STYLES} mb-4`}
+                            disabled={!allowEditing}
                             id="name"
                             placeholder="Primeiro nome"
                             onChange={(e) =>
@@ -182,14 +180,12 @@ export default function SettingsPage() {
                             }
                             value={userData?.displayName || ''}
                         />
-                        <label
-                            className="font-medium text-sm text-neutral-600"
-                            htmlFor="name"
-                        >
-                            Nome
+                        <label className={LABEL_STYLES} htmlFor="name">
+                            Nome de usuário
                         </label>
-                        <Input
-                            fullWidth
+                        <input
+                            className={`${INPUT_STYLES} mb-4`}
+                            disabled={!allowEditing}
                             id="username"
                             placeholder="Nome de usuário"
                             onChange={(e) =>
@@ -200,8 +196,43 @@ export default function SettingsPage() {
                             }
                             value={userData?.handle || ''}
                         />
+                        <label className={LABEL_STYLES} htmlFor="bio">
+                            Bio
+                        </label>
+                        <textarea
+                            className={`${INPUT_STYLES} resize-none`}
+                            disabled={!allowEditing}
+                            id="bio"
+                            value={userData?.bio || ''}
+                            placeholder="Fale um pouco sobre você"
+                        />
                     </div>
                 </form>
+                <footer className="flex gap-2 items-center justify-end mt-4">
+                    {allowEditing ? (
+                        <>
+                            <Button
+                                onClick={() => setAllowEditing(false)}
+                                variant="secondary"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                disabled
+                                onClick={() => setAllowEditing(false)}
+                            >
+                                Salvar alterações
+                            </Button>
+                        </>
+                    ) : (
+                        <Button
+                            onClick={() => setAllowEditing(true)}
+                            variant="bordered"
+                        >
+                            Editar
+                        </Button>
+                    )}
+                </footer>
             </section>
         </>
     )
