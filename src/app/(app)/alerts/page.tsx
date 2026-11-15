@@ -1,170 +1,305 @@
 'use client'
 
-import useSWR from 'swr'
-import { useSession } from 'next-auth/react'
-
-import { Navigation } from '@/components/navigation'
-import { AlertResponse } from '@/interfaces/alert-response'
-import { fetcherWithToken } from '@/lib/swr'
-import { Spinner } from '@/components/spinner'
-import { Button } from '@/components/button'
 import {
-    BandaidsIcon,
-    CatIcon,
     CheckCircleIcon,
-    CloudLightningIcon,
-    DotsThreeCircleIcon,
     EyeIcon,
-    Icon,
-    SirenIcon,
+    PlusIcon,
+    ShieldCheckIcon,
     ThumbsDownIcon,
     ThumbsUpIcon,
-    TrafficConeIcon,
-    TrafficSignIcon,
-    WrenchIcon,
+    WarningIcon,
 } from '@phosphor-icons/react'
-import { ReactNode } from 'react'
+import axios from 'axios'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
+import { useState } from 'react'
+import useSWR from 'swr'
+
+import { Button } from '@/components/button'
+import { Navigation } from '@/components/navigation'
+import { ALERT_CATEGORIES } from '@/components/post/alert-category-picker'
+import { useCompose } from '@/components/post/compose-context'
+import { PushOptIn } from '@/components/pwa/push-opt-in'
+import { Spinner } from '@/components/spinner'
+import {
+    AlertContributionType,
+    AlertResponse,
+    AlertSeverity,
+} from '@/interfaces/alert-response'
+import { friendlyApiError } from '@/lib/api-error'
+import { fetcherWithToken } from '@/lib/swr'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export default function AlertsPage() {
-    const { data: user } = useSession()
+    const { data: session } = useSession()
+    const { openCompose } = useCompose()
+    const token = session?.user?.token
 
-    const { data: alerts, isLoading } = useSWR<AlertResponse[]>(
-        user ? [`${API_URL}/alerts/nearby`, user?.user?.token] : null,
-        fetcherWithToken,
-    )
+    const key = token ? [`${API_URL}/alerts/nearby`, token] : null
+    const {
+        data: alerts,
+        isLoading,
+        error,
+        mutate,
+    } = useSWR<AlertResponse[]>(key, fetcherWithToken)
+
+    function replaceAlert(updated: AlertResponse) {
+        mutate(
+            (current) =>
+                current
+                    ?.map((alert) =>
+                        alert.postId === updated.postId ? updated : alert,
+                    )
+                    // resolvido ou em revisão sai da lista de ativos
+                    .filter((alert) => alert.status === 'ACTIVE'),
+            { revalidate: false },
+        )
+    }
+
+    const needsAddress =
+        axios.isAxiosError(error) &&
+        (error.response?.status === 412 || error.response?.status === 428)
 
     return (
         <div className="p-4 border border-neutral-100 rounded-2xl bg-white">
-            <Navigation title="Alertas próximos" showBackButton={false} />
-            {isLoading ? (
-                <Spinner />
-            ) : (
-                alerts?.map((alert) => (
-                    <AlertCard key={alert.postId} alert={alert} />
-                ))
+            <div className="flex items-start justify-between gap-2">
+                <Navigation title="Alertas próximos" showBackButton={false} />
+                <Button
+                    size="sm"
+                    iconPlacement="leading"
+                    icon={PlusIcon}
+                    onClick={() => openCompose('SAFETY_ALERT')}
+                >
+                    Criar alerta
+                </Button>
+            </div>
+
+            <PushOptIn />
+
+            {isLoading && <Spinner />}
+
+            {needsAddress && (
+                <EmptyState
+                    title="Cadastre seu endereço"
+                    description="Precisamos saber onde você mora para mostrar os alertas da sua vizinhança."
+                    action={
+                        <Link
+                            href="/settings/account/info"
+                            className="font-semibold text-green-700"
+                        >
+                            Ir para as preferências
+                        </Link>
+                    }
+                />
             )}
+
+            {error && !needsAddress && (
+                <EmptyState
+                    title="Não foi possível carregar os alertas"
+                    description={friendlyApiError(
+                        error,
+                        'Tente de novo em alguns instantes.',
+                    )}
+                    action={
+                        <Button variant="secondary" onClick={() => mutate()}>
+                            Tentar de novo
+                        </Button>
+                    }
+                />
+            )}
+
+            {alerts && alerts.length === 0 && (
+                <EmptyState
+                    icon
+                    title="Tudo tranquilo por aqui"
+                    description="Nenhum alerta ativo perto de você. Se vir algo, avise seus vizinhos."
+                />
+            )}
+
+            {token &&
+                alerts?.map((alert) => (
+                    <AlertCard
+                        key={alert.postId}
+                        alert={alert}
+                        token={token}
+                        onUpdated={replaceAlert}
+                    />
+                ))}
         </div>
     )
 }
 
-const SeverityBadge = ({ severity }: { severity: string }) => {
-    const severityColors: Record<string, string> = {
-        LOW: 'bg-green-500',
-        MEDIUM: 'bg-yellow-500',
-        HIGH: 'bg-red-500',
-        CRITICAL: 'bg-purple-500',
-    }
+function EmptyState({
+    title,
+    description,
+    action,
+    icon,
+}: {
+    title: string
+    description: string
+    action?: React.ReactNode
+    icon?: boolean
+}) {
+    return (
+        <div className="flex flex-col items-center text-center py-10 px-4 gap-2">
+            {icon && (
+                <ShieldCheckIcon
+                    size={48}
+                    weight="duotone"
+                    className="text-green-600"
+                />
+            )}
+            <strong className="text-lg text-neutral-800">{title}</strong>
+            <p className="text-neutral-500 max-w-sm">{description}</p>
+            {action && <div className="mt-2">{action}</div>}
+        </div>
+    )
+}
 
-    const severityLabels: Record<string, string> = {
-        LOW: 'Baixa',
-        MEDIUM: 'Média',
-        HIGH: 'Alta',
-        CRITICAL: 'Crítica',
-    }
+const SEVERITY: Record<AlertSeverity, { label: string; className: string }> = {
+    LOW: { label: 'Baixa', className: 'bg-green-500' },
+    MEDIUM: { label: 'Média', className: 'bg-yellow-500' },
+    HIGH: { label: 'Alta', className: 'bg-red-500' },
+    CRITICAL: { label: 'Crítica', className: 'bg-purple-600' },
+}
 
+function SeverityBadge({ severity }: { severity: AlertSeverity }) {
+    const info = SEVERITY[severity] ?? SEVERITY.LOW
     return (
         <span
-            className={`px-2 py-1 text-white text-xs font-bold rounded-full ${severityColors[severity]}`}
+            className={`px-2 py-1 text-white text-xs font-bold rounded-full ${info.className}`}
         >
-            {severityLabels[severity]}
+            {info.label}
         </span>
     )
 }
 
-const CategoryBadge = ({ category }: { category: string }) => {
-    const categoryColors: Record<string, string> = {
-        SECURITY: 'bg-blue-500',
-        TRAFFIC: 'bg-orange-500',
-        WEATHER: 'bg-purple-500',
-        INFRASTRUCTURE: 'bg-gray-500',
-        HEALTH: 'bg-pink-500',
-        ANIMAL: 'bg-green-500',
-        UTILITIES: 'bg-yellow-500',
-        OTHER: 'bg-purple-500',
-    }
-
-    const categoryLabels: Record<string, string> = {
-        SECURITY: 'Alerta de Segurança',
-        TRAFFIC: 'Alerta de Trânsito',
-        WEATHER: 'Alerta de Clima',
-        INFRASTRUCTURE: 'Alerta de Infraestrutura',
-        HEALTH: 'Alerta de Saúde',
-        ANIMAL: 'Alerta de Animais',
-        UTILITIES: 'Alerta de Utilidades',
-        OTHER: 'Outro',
-    }
-
-    const categoryIcons: Record<string, Icon> = {
-        SECURITY: SirenIcon,
-        TRAFFIC: TrafficConeIcon,
-        WEATHER: CloudLightningIcon,
-        INFRASTRUCTURE: TrafficSignIcon,
-        HEALTH: BandaidsIcon,
-        ANIMAL: CatIcon,
-        UTILITIES: WrenchIcon,
-        OTHER: DotsThreeCircleIcon,
-    }
-
-    const IconComponent = categoryIcons[category]
+function CategoryBadge({ category }: { category: string }) {
+    const info =
+        ALERT_CATEGORIES.find((item) => item.key === category) ??
+        ALERT_CATEGORIES[ALERT_CATEGORIES.length - 1]
+    const CategoryIcon = info.icon
 
     return (
         <div className="flex items-center gap-2">
             <div
-                className={`flex text-white text-lg p-1.5 rounded-full ${categoryColors[category]}`}
+                className={`flex text-white text-lg p-1.5 rounded-full ${info.color}`}
             >
-                <IconComponent weight="bold" />
+                <CategoryIcon weight="bold" />
             </div>
-            <span className="font-semibold text-sm">
-                {categoryLabels[category]}
-            </span>
+            <span className="font-semibold text-sm">{info.label}</span>
         </div>
     )
 }
 
-const AlertCard = ({ alert }: { alert: AlertResponse }) => {
+function AlertCard({
+    alert,
+    token,
+    onUpdated,
+}: {
+    alert: AlertResponse
+    token: string
+    onUpdated: (alert: AlertResponse) => void
+}) {
+    const [pending, setPending] = useState<AlertContributionType | null>(null)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+    async function vote(type: AlertContributionType) {
+        setPending(type)
+        setErrorMessage(null)
+        const url = `${API_URL}/alerts/${alert.postId}/contributions`
+        const headers = { Authorization: `Bearer ${token}` }
+        try {
+            const response =
+                alert.myContribution === type
+                    ? await axios.delete<AlertResponse>(url, { headers })
+                    : await axios.post<AlertResponse>(
+                          url,
+                          { type },
+                          { headers },
+                      )
+            onUpdated(response.data)
+        } catch (error) {
+            setErrorMessage(
+                friendlyApiError(error, 'Não foi possível registrar seu voto.'),
+            )
+        } finally {
+            setPending(null)
+        }
+    }
+
+    const createdAgo = alert.createdAt
+        ? formatDistanceToNow(new Date(alert.createdAt), {
+              addSuffix: true,
+              locale: ptBR,
+          })
+        : null
+
+    const voteButton = (
+        type: AlertContributionType,
+        label: string,
+        icon: typeof ThumbsUpIcon,
+    ) => {
+        const selected = alert.myContribution === type
+        return (
+            <Button
+                iconPlacement="leading"
+                icon={icon}
+                variant={selected ? 'secondary' : 'ghost'}
+                size="sm"
+                aria-pressed={selected}
+                disabled={pending !== null}
+                activityIndicator={pending === type}
+                onClick={() => vote(type)}
+            >
+                {label}
+            </Button>
+        )
+    }
+
     return (
-        <div className="p-4 border-2 border-neutral-100 rounded-xl mb-4">
-            <header className="flex justify-between items-center mb-2">
-                <CategoryBadge category={alert.category.toLocaleString()} />
+        <article className="p-4 border-2 border-neutral-100 rounded-xl mb-4">
+            <header className="flex justify-between items-center mb-2 gap-2">
+                <CategoryBadge category={String(alert.category)} />
                 <SeverityBadge severity={alert.severity} />
             </header>
 
-            <p className="text-lg font-semibold">{alert.postContent}</p>
+            <p className="text-lg font-semibold break-words">
+                {alert.postContent}
+            </p>
+            {createdAgo && (
+                <p className="text-sm text-neutral-500 mt-1">{createdAgo}</p>
+            )}
 
-            <div className="flex items-center gap-2 mt-2"></div>
+            {errorMessage && (
+                <p
+                    role="alert"
+                    className="mt-2 flex gap-2 items-center text-red-700 font-semibold text-sm"
+                >
+                    <WarningIcon weight="bold" size={18} /> {errorMessage}
+                </p>
+            )}
 
-            <footer className="flex items-center gap-4">
-                <Button
-                    iconPlacement="leading"
-                    icon={ThumbsUpIcon}
-                    variant="ghost"
-                    size="sm"
-                >
-                    {alert.confirmations}
-                </Button>
-                <Button
-                    iconPlacement="leading"
-                    icon={ThumbsDownIcon}
-                    variant="ghost"
-                    size="sm"
-                >
-                    {alert.dismissals}
-                </Button>
-                <Button
-                    iconPlacement="leading"
-                    icon={CheckCircleIcon}
-                    variant="ghost"
-                    size="sm"
-                >
-                    Resolvido
-                </Button>
-                <div className="flex-1"></div>
-                <span className="select-n flex gap-2 text-sm font-semibold items-center text-neutral-800">
+            <footer className="flex flex-wrap items-center gap-1 sm:gap-4 mt-3">
+                {voteButton(
+                    'CONFIRM',
+                    `Confirmo · ${alert.confirmations}`,
+                    ThumbsUpIcon,
+                )}
+                {voteButton(
+                    'DENY',
+                    `Não vi · ${alert.dismissals}`,
+                    ThumbsDownIcon,
+                )}
+                {voteButton('RESOLVED', 'Resolvido', CheckCircleIcon)}
+                <div className="flex-1" />
+                <span className="flex gap-2 text-sm font-semibold items-center text-neutral-800">
                     <EyeIcon weight="bold" size={18} /> {alert.views}
                 </span>
             </footer>
-        </div>
+        </article>
     )
 }

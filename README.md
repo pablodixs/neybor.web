@@ -128,6 +128,37 @@ http://localhost:3000
 | `npm run build` | Gera o build de produção |
 | `npm run start` | Executa o build de produção |
 | `npm run lint` | Executa o ESLint |
+| `npm run preview` | Gera o build para Cloudflare e roda no runtime do Workers local |
+| `npm run deploy` | Gera o build e publica no Cloudflare Workers |
+| `npm run cf-typegen` | Gera os tipos dos bindings do Cloudflare |
+
+## Deploy no Cloudflare Workers
+
+O app roda no Cloudflare Workers via [OpenNext](https://opennext.js.org/cloudflare). A configuração está em `wrangler.jsonc` e `open-next.config.ts`.
+
+Preparação (uma vez):
+
+```bash
+npx wrangler login
+npx wrangler r2 bucket create neybor-web-opennext-cache
+npx wrangler secret put NEXTAUTH_SECRET
+npx wrangler secret put NEXTAUTH_URL   # ex.: https://neybor.example.com
+```
+
+As variáveis `NEXT_PUBLIC_*` são embutidas no JavaScript durante o build, então precisam existir no ambiente de quem roda `npm run deploy` (no `.env.local`, no CI ou nas variáveis de build do Workers Builds).
+
+O `next/image` usa o binding `IMAGES` (Cloudflare Images), que precisa estar habilitado na conta.
+
+Para testar localmente no runtime do Workers, copie `.dev.vars.example` para `.dev.vars` e rode `npm run preview`.
+
+Cabeçalhos dos arquivos estáticos (como o `sw.js`, que não pode ficar em cache) ficam em `public/_headers`, porque o Cloudflare serve esses arquivos sem passar pelo Next.
+
+## PWA e notificações
+
+- Manifest em `src/app/manifest.ts`, service worker em `public/sw.js` e página offline em `public/offline.html`.
+- O service worker só é registrado em produção. Para testar no `npm run dev`, use `NEXT_PUBLIC_ENABLE_SW=true`.
+- As notificações push dependem das chaves VAPID configuradas no backend (`NEYBOR_VAPID_*`). No iPhone, só funcionam com o app instalado na tela de início.
+- Seções ainda não prontas ficam escondidas em `src/lib/features.ts`.
 
 ## Autenticação
 

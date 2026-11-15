@@ -1,8 +1,31 @@
-'use client'
+import type { Metadata, Viewport } from 'next'
 
-import { SessionProvider } from 'next-auth/react'
-
+import { Providers } from './providers'
 import './globals.css'
+
+export const metadata: Metadata = {
+    title: 'Neybor',
+    description: 'Alertas e conversas da sua vizinhança.',
+    applicationName: 'Neybor',
+    appleWebApp: {
+        capable: true,
+        title: 'Neybor',
+        statusBarStyle: 'default',
+    },
+    formatDetection: {
+        telephone: false,
+    },
+    icons: {
+        apple: '/icons/apple-touch-icon.png',
+    },
+}
+
+export const viewport: Viewport = {
+    themeColor: '#00A63E',
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
+}
 
 export default function RootLayout({
     children,
@@ -11,15 +34,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="pt-BR">
-            <SessionProvider>
-                {
-                    <body
-                        className={`antialiased selection:bg-green-600 selection:text-white`}
-                    >
-                        {children}
-                    </body>
-                }
-            </SessionProvider>
+            <body className="antialiased selection:bg-green-600 selection:text-white">
+                <Providers>{children}</Providers>
+            </body>
         </html>
     )
 }
