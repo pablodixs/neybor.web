@@ -95,7 +95,7 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3, type: 'spring', bounce: 0 }}
                 open={isOpen}
-                className="z-50 top-20 mx-auto p-4 bg-white rounded-2xl max-w-2xl w-full"
+                className="z-50 fixed top-[calc(0.5rem+env(safe-area-inset-top))] sm:top-20 inset-x-2 sm:inset-x-0 mx-auto p-4 bg-white rounded-2xl max-w-2xl w-auto sm:w-full max-h-[calc(100dvh-1rem)] overflow-y-auto"
             >
                 <header className="flex items-center justify-between">
                     <h1 className="font-semibold text-neutral-800 tracking-tight text-2xl">
@@ -276,7 +276,7 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 0.5 }}
                     exit={{ opacity: 0 }}
-                    className="z-40 absolute bg-black opacity-50 inset-0"
+                    className="z-40 fixed bg-black opacity-50 inset-0"
                 />
             )}
         </>
