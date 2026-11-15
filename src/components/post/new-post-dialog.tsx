@@ -5,10 +5,9 @@ import {
     ImageIcon,
     AtIcon,
     ShoppingCartIcon,
-    ChartBarHorizontalIcon,
     XIcon,
     WarningIcon,
-    CalendarDotsIcon,
+    NavigationArrowIcon,
     GlobeIcon,
     CityIcon,
     ArrowLeftIcon,
@@ -23,17 +22,23 @@ import { Dispatch, SetStateAction, useState, useRef, MouseEvent } from 'react'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { motion } from 'motion/react'
+import { mutate } from 'swr'
 
 import { CircularProgressIndicator } from '../circular-progress-indicator'
 import { Button } from '../button'
 import axios from 'axios'
 import { Tooltip } from '../tooltip'
-import { AlertLabel } from './post-type-labels/alert-label'
+import { friendlyApiError } from '@/lib/api-error'
+import { isFeatureEnabled } from '@/lib/features'
+import { AlertCategoryKey, AlertCategoryPicker } from './alert-category-picker'
 import { RecomendationsLabel } from './post-type-labels/recomendations-label'
+
+export type ComposeType = 'GENERAL' | 'SAFETY_ALERT'
 
 interface NewPostDialogProps {
     isOpen: boolean
     onClose: () => void
+    initialType?: ComposeType
 }
 
 enum PostType {
@@ -41,24 +46,75 @@ enum PostType {
     MARKETPLACE,
     RECOMMENDATION,
     GENERAL,
-    POOL,
-    EVENT,
+}
+
+interface Coordinates {
+    latitude: number
+    longitude: number
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
-export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
+export function NewPostDialog({
+    isOpen,
+    onClose,
+    initialType = 'GENERAL',
+}: NewPostDialogProps) {
     const [postContent, setPostContent] = useState('')
-    const [postVisibility, setPostVisibility] = useState('PUBLIC')
-    const [postType, setPostType] = useState<PostType>(PostType.GENERAL)
+    const [postVisibility, setPostVisibility] = useState(
+        initialType === 'SAFETY_ALERT' ? 'NEIGHBORHOOD' : 'PUBLIC',
+    )
+    const [postType, setPostType] = useState<PostType>(
+        initialType === 'SAFETY_ALERT'
+            ? PostType.SAFETY_ALERT
+            : PostType.GENERAL,
+    )
+    const [alertCategory, setAlertCategory] = useState<AlertCategoryKey | null>(
+        null,
+    )
+    const [coords, setCoords] = useState<Coordinates | null>(null)
+    const [isLocating, setIsLocating] = useState(false)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+    const isAlert = postType === PostType.SAFETY_ALERT
 
     const [isPostSending, setIsPostSending] = useState(false)
     const [currentStep, setCurrentStep] = useState('draft')
 
     const { data } = useSession()
 
+    function handleLocate() {
+        if (coords) {
+            setCoords(null)
+            return
+        }
+        if (!('geolocation' in navigator)) {
+            setErrorMessage('Seu navegador não permite usar a localização.')
+            return
+        }
+        setIsLocating(true)
+        setErrorMessage(null)
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setCoords({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                })
+                setIsLocating(false)
+            },
+            () => {
+                setErrorMessage(
+                    'Não conseguimos pegar sua localização. Vamos usar o endereço do seu perfil.',
+                )
+                setIsLocating(false)
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+        )
+    }
+
     function handleSendPost() {
         setIsPostSending(true)
+        setErrorMessage(null)
 
         axios
             .post(
@@ -67,6 +123,10 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                     content: postContent,
                     type: PostType[postType],
                     visibility: postVisibility,
+                    alertCategory: isAlert ? alertCategory : undefined,
+                    collaborative: isAlert ? true : undefined,
+                    latitude: coords?.latitude,
+                    longitude: coords?.longitude,
                 },
                 {
                     headers: {
@@ -75,9 +135,23 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                 },
             )
             .then(() => {
+                // atualiza listas que mostram o post novo
+                mutate(
+                    (key) =>
+                        Array.isArray(key) &&
+                        typeof key[0] === 'string' &&
+                        /\/(alerts|feed)/.test(key[0]),
+                )
                 onClose()
             })
-            .catch(() => {})
+            .catch((error) => {
+                setErrorMessage(
+                    friendlyApiError(
+                        error,
+                        'Não foi possível publicar agora. Tente de novo.',
+                    ),
+                )
+            })
             .finally(() => {
                 setIsPostSending(false)
             })
@@ -140,14 +214,36 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                                     }
                                     value={postContent}
                                     autoFocus
-                                    placeholder="O que está acontecendo?"
+                                    placeholder={
+                                        isAlert
+                                            ? 'Descreva o que está acontecendo e onde'
+                                            : 'O que está acontecendo?'
+                                    }
                                     className="text-xl font-medium w-full resize-none outline-0 field-sizing-content"
                                     rows={4}
                                 />
-                                {postType === PostType.SAFETY_ALERT && (
-                                    <AlertLabel />
+                                {isAlert && (
+                                    <AlertCategoryPicker
+                                        value={alertCategory}
+                                        onChange={setAlertCategory}
+                                    />
+                                )}
+                                {coords && (
+                                    <p className="inline-flex items-center gap-1 text-sm font-semibold text-green-700 bg-green-50 rounded-full px-3 py-1">
+                                        <NavigationArrowIcon weight="fill" />
+                                        Usando sua localização atual
+                                    </p>
                                 )}
                             </section>
+                            {errorMessage && currentStep === 'draft' && (
+                                <p
+                                    role="alert"
+                                    className="ml-2 mt-2 text-red-700 font-semibold text-sm flex gap-2 items-center"
+                                >
+                                    <WarningIcon weight="bold" size={18} />{' '}
+                                    {errorMessage}
+                                </p>
+                            )}
                             {postContent.length > 300 && (
                                 <p className="ml-2 mt-2 text-red-700 font-semibold text-sm flex gap-2 items-center">
                                     <WarningIcon weight="bold" size={18} />{' '}
@@ -161,9 +257,25 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                         />
                         <section className="flex justify-between">
                             <div className="flex gap-2 fle-1 items-center">
-                                <Tooltip content="Adicionar localização">
-                                    <button className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 rounded-full cursor-pointer">
-                                        <MapPinIcon weight="bold" />
+                                <Tooltip
+                                    content={
+                                        coords
+                                            ? 'Remover localização atual'
+                                            : 'Usar minha localização atual'
+                                    }
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={handleLocate}
+                                        disabled={isLocating}
+                                        aria-pressed={!!coords}
+                                        aria-label="Usar minha localização atual"
+                                        data-active={!!coords}
+                                        className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 data-[active=true]:text-green-700 data-[active=true]:bg-green-50 rounded-full cursor-pointer disabled:animate-pulse"
+                                    >
+                                        <MapPinIcon
+                                            weight={coords ? 'fill' : 'bold'}
+                                        />
                                     </button>
                                 </Tooltip>
                                 <Tooltip content="Adicionar mídia">
@@ -189,7 +301,8 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                                 <Button
                                     disabled={
                                         postContent.length < 2 ||
-                                        postContent.length > 300
+                                        postContent.length > 300 ||
+                                        (isAlert && !alertCategory)
                                     }
                                     onClick={() =>
                                         setCurrentStep('post-visibility')
@@ -207,7 +320,7 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                         <p className="font-semibold text-xl text-neutral-800 text-center">
                             Escolha onde seu post será visível:
                         </p>
-                        <div className="mt-6 flex gap-4 w-full items-center justify-center">
+                        <div className="mt-6 flex flex-wrap gap-2 sm:gap-4 w-full items-center justify-center">
                             <button
                                 data-selected={postVisibility === 'PUBLIC'}
                                 onClick={() => setPostVisibility('PUBLIC')}
@@ -251,6 +364,15 @@ export function NewPostDialog({ isOpen, onClose }: NewPostDialogProps) {
                                     'Seu post será visível apenas para usuários em vizinhanças próximas.'}
                             </p>
                         </div>
+                        {errorMessage && (
+                            <p
+                                role="alert"
+                                className="mt-4 w-full flex gap-2 items-center justify-center text-red-700 font-semibold text-sm"
+                            >
+                                <WarningIcon weight="bold" size={18} />
+                                {errorMessage}
+                            </p>
+                        )}
                         <footer className="mt-8 flex justify-between w-full">
                             <Button
                                 onClick={() => setCurrentStep('draft')}
@@ -302,19 +424,12 @@ const POST_TYPE_OPTIONS = [
         icon: MagnifyingGlassIcon,
         styles: 'hover:text-purple-600 hover:outline-purple-600 data-[selected=true]:bg-purple-600 data-[selected=true]:text-white data-[selected=true]:outline-purple-600 ',
     },
-    {
-        type: PostType.EVENT,
-        label: 'Evento',
-        icon: CalendarDotsIcon,
-        styles: 'hover:text-rose-600 hover:outline-rose-600 data-[selected=true]:bg-rose-600 data-[selected=true]:text-white data-[selected=true]:outline-rose-600 ',
-    },
-    {
-        type: PostType.POOL,
-        label: 'Enquete',
-        icon: ChartBarHorizontalIcon,
-        styles: 'hover:text-pink-600 hover:outline-pink-600 data-[selected=true]:bg-pink-600 data-[selected=true]:text-white data-[selected=true]:outline-pink-600 ',
-    },
 ]
+
+const VISIBLE_POST_TYPE_OPTIONS = POST_TYPE_OPTIONS.filter(
+    (option) =>
+        option.type !== PostType.MARKETPLACE || isFeatureEnabled('marketplace'),
+)
 
 const PostTypeOptions = ({
     typeSelected,
@@ -385,24 +500,26 @@ const PostTypeOptions = ({
                 onMouseUp={handleMouseUp}
                 onMouseMove={handleMouseMove}
             >
-                {POST_TYPE_OPTIONS.map(({ type, label, icon: Icon }) => (
-                    <button
-                        key={type}
-                        onClick={() => {
-                            if (!isDraggingRef.current) {
-                                if (typeSelected === type) {
-                                    onTypeSelectChange(PostType.GENERAL)
-                                } else {
-                                    onTypeSelectChange(type)
+                {VISIBLE_POST_TYPE_OPTIONS.map(
+                    ({ type, label, icon: Icon }) => (
+                        <button
+                            key={type}
+                            onClick={() => {
+                                if (!isDraggingRef.current) {
+                                    if (typeSelected === type) {
+                                        onTypeSelectChange(PostType.GENERAL)
+                                    } else {
+                                        onTypeSelectChange(type)
+                                    }
                                 }
-                            }
-                        }}
-                        data-selected={typeSelected === type}
-                        className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full outline-2 text-nowrap select-none -outline-offset-2 outline-neutral-100 font-semibold transition ${POST_TYPE_OPTIONS.find((option) => option.type === type)?.styles}`}
-                    >
-                        <Icon className="text-lg" weight="bold" /> {label}
-                    </button>
-                ))}
+                            }}
+                            data-selected={typeSelected === type}
+                            className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full outline-2 text-nowrap select-none -outline-offset-2 outline-neutral-100 font-semibold transition ${POST_TYPE_OPTIONS.find((option) => option.type === type)?.styles}`}
+                        >
+                            <Icon className="text-lg" weight="bold" /> {label}
+                        </button>
+                    ),
+                )}
             </section>
             <button
                 onClick={() => scroll('right')}

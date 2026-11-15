@@ -54,7 +54,8 @@ const nextConfig: NextConfig = {
                     },
                     {
                         key: 'Permissions-Policy',
-                        value: 'camera=(), microphone=(), geolocation=()',
+                        // geolocalização liberada só para o próprio site (alertas com local atual)
+                        value: 'camera=(), microphone=(), geolocation=(self)',
                     },
                     {
                         key: 'Strict-Transport-Security',

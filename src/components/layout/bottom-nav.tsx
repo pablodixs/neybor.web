@@ -67,7 +67,7 @@ export function BottomNav() {
                 <div className="flex-1 flex items-center justify-center">
                     <button
                         type="button"
-                        onClick={openCompose}
+                        onClick={() => openCompose()}
                         aria-label="Novo post"
                         className="w-12 h-12 rounded-full bg-green-600 active:bg-green-800 text-white flex items-center justify-center shadow-md cursor-pointer"
                     >

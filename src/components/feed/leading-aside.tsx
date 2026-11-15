@@ -118,7 +118,7 @@ export function LeadingAside() {
                         })}
                     <Button
                         size="lg"
-                        onClick={openCompose}
+                        onClick={() => openCompose()}
                         iconPlacement="leading"
                         icon={PencilSimpleLineIcon}
                     >

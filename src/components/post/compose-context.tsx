@@ -9,10 +9,10 @@ import {
     useState,
 } from 'react'
 
-import { NewPostDialog } from './new-post-dialog'
+import { ComposeType, NewPostDialog } from './new-post-dialog'
 
 interface ComposeContextValue {
-    openCompose: () => void
+    openCompose: (type?: ComposeType) => void
 }
 
 const ComposeContext = createContext<ComposeContextValue | null>(null)
@@ -23,7 +23,11 @@ const ComposeContext = createContext<ComposeContextValue | null>(null)
  */
 export function ComposeProvider({ children }: { children: ReactNode }) {
     const [isOpen, setIsOpen] = useState(false)
-    const openCompose = useCallback(() => setIsOpen(true), [])
+    const [type, setType] = useState<ComposeType>('GENERAL')
+    const openCompose = useCallback((nextType: ComposeType = 'GENERAL') => {
+        setType(nextType)
+        setIsOpen(true)
+    }, [])
 
     return (
         <ComposeContext.Provider value={{ openCompose }}>
@@ -32,6 +36,7 @@ export function ComposeProvider({ children }: { children: ReactNode }) {
                 {isOpen && (
                     <NewPostDialog
                         isOpen={isOpen}
+                        initialType={type}
                         onClose={() => setIsOpen(false)}
                     />
                 )}
