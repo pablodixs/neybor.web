@@ -8,7 +8,7 @@
  * - Nada de API, auth ou outra origem passa pelo cache.
  */
 
-const VERSION = 'v2'
+const VERSION = 'v3'
 const STATIC_CACHE = `neybor-static-${VERSION}`
 const PAGES_CACHE = `neybor-pages-${VERSION}`
 const OFFLINE_URL = '/offline.html'
@@ -20,11 +20,32 @@ const PRECACHE = [
     '/fonts/JetBrainsSans.woff2',
 ]
 
+// Alguns hosts (como o Cloudflare) redirecionam /offline.html para /offline.
+// Navegador não aceita resposta "redirecionada" para navegação, então guardamos
+// uma cópia limpa da página.
+async function cacheOfflinePage(cache) {
+    const response = await fetch(OFFLINE_URL, { cache: 'reload' })
+    if (!response.ok) throw new Error('offline page unavailable')
+    const body = await response.blob()
+    await cache.put(
+        OFFLINE_URL,
+        new Response(body, {
+            status: 200,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        }),
+    )
+}
+
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches
             .open(STATIC_CACHE)
-            .then((cache) => cache.addAll(PRECACHE))
+            .then((cache) =>
+                Promise.all([
+                    cacheOfflinePage(cache),
+                    cache.addAll(PRECACHE.filter((url) => url !== OFFLINE_URL)),
+                ]),
+            )
             .then(() => self.skipWaiting()),
     )
 })

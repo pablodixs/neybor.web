@@ -35,11 +35,14 @@ function getHeader(headers: RequestHeaders, name: string) {
 }
 
 function getClientIp(headers: RequestHeaders) {
+    // no Cloudflare o IP real do cliente vem em cf-connecting-ip
+    const cloudflareIp = getHeader(headers, 'cf-connecting-ip')
     const forwardedFor = getHeader(headers, 'x-forwarded-for')
     const realIp = getHeader(headers, 'x-real-ip')
     const vercelIp = getHeader(headers, 'x-vercel-forwarded-for')
 
     return (
+        cloudflareIp ||
         forwardedFor?.split(',')[0]?.trim() ||
         realIp ||
         vercelIp?.split(',')[0]?.trim() ||

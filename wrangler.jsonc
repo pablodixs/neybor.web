@@ -1,0 +1,37 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "neybor-web",
+    "main": ".open-next/worker.js",
+    "compatibility_date": "2026-11-01",
+    "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+    "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+    },
+    "services": [
+        {
+            // auto-referência usada pelo OpenNext; o nome precisa ser igual ao do worker
+            "binding": "WORKER_SELF_REFERENCE",
+            "service": "neybor-web"
+        }
+    ],
+    "r2_buckets": [
+        {
+            // crie uma vez com: npx wrangler r2 bucket create neybor-web-opennext-cache
+            "binding": "NEXT_INC_CACHE_R2_BUCKET",
+            "bucket_name": "neybor-web-opennext-cache"
+        }
+    ],
+    "images": {
+        // otimização do next/image pelo Cloudflare Images (avatares do S3)
+        // https://opennext.js.org/cloudflare/howtos/image
+        "binding": "IMAGES"
+    },
+    "observability": {
+        "enabled": true
+    },
+    "vars": {
+        // variáveis públicas também precisam existir no build (NEXT_PUBLIC_* são embutidas)
+        // segredos: wrangler secret put NEXTAUTH_SECRET
+    }
+}
