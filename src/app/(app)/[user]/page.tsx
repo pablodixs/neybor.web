@@ -4,7 +4,7 @@ import { ProfileHeader } from '@/components/profile-page/profile-header'
 import { ProfileNavigation } from '@/components/profile-page/profile-navigation'
 import { Spinner } from '@/components/spinner'
 import { fetcherWithToken } from '@/lib/swr'
-import Lottie from 'lottie-react'
+import { Lottie } from 'lottie-react'
 import { useSession } from 'next-auth/react'
 import { useParams } from 'next/navigation'
 import useSWR from 'swr'
@@ -48,7 +48,12 @@ export default function UserPage() {
                             Verifique o nome de usuário e tente novamente.
                         </p>
                     </div>
-                    <Lottie className="w-2/5" animationData={lottie} />
+                    <Lottie
+                        style={{ width: '40%', aspectRatio: '1' }}
+                        src={lottie}
+                        autoplay
+                        loop
+                    />
                 </div>
             </div>
         )
