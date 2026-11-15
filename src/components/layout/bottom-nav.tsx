@@ -5,12 +5,13 @@ import {
     Icon,
     MapTrifoldIcon,
     PlusIcon,
+    ListIcon,
     SirenIcon,
-    UserCircleIcon,
 } from '@phosphor-icons/react'
-import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+
+import { useMyProfileHref } from '@/hooks/use-my-profile-href'
 
 import { useCompose } from '../post/compose-context'
 
@@ -41,10 +42,14 @@ function NavItem({
 /** Barra de navegação fixa no rodapé, só no celular e tablet. */
 export function BottomNav() {
     const path = usePathname()
-    const { data } = useSession()
+    const profileHref = useMyProfileHref()
     const { openCompose } = useCompose()
 
-    const profileHref = data ? `/${data.user.profileId}` : '/settings'
+    const menuActive =
+        path === '/menu' ||
+        path.startsWith('/settings') ||
+        path === '/bookmarks' ||
+        (profileHref !== null && path === profileHref)
 
     return (
         <nav
@@ -81,12 +86,10 @@ export function BottomNav() {
                     active={path === '/map'}
                 />
                 <NavItem
-                    href={profileHref}
-                    label="Perfil"
-                    icon={UserCircleIcon}
-                    active={
-                        path === profileHref || path.startsWith('/settings')
-                    }
+                    href="/menu"
+                    label="Menu"
+                    icon={ListIcon}
+                    active={menuActive}
                 />
             </div>
         </nav>

@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 
+import { useMyProfileHref } from '@/hooks/use-my-profile-href'
 import { isFeatureEnabled } from '@/lib/features'
 
 import { Button } from '../button'
@@ -31,10 +32,9 @@ export function LeadingAside() {
         required: true,
     })
     const { openCompose } = useCompose()
+    const profileHref = useMyProfileHref()
 
     if (!data) return null
-
-    const profileHref = `/${data.user.profileId}`
 
     const links: AsideLink[] = [
         {
@@ -56,10 +56,10 @@ export function LeadingAside() {
             enabled: isFeatureEnabled('events'),
         },
         {
-            href: profileHref,
+            href: profileHref ?? '/menu',
             label: 'Meu perfil',
             icon: UserIcon,
-            enabled: true,
+            enabled: profileHref !== null,
         },
         {
             href: '/bookmarks',
@@ -79,7 +79,7 @@ export function LeadingAside() {
         <aside className="hidden lg:block w-72 xl:w-80 shrink-0 sticky top-20 self-start">
             <div className="border border-neutral-100 p-2 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto bg-white">
                 <Link
-                    href={profileHref}
+                    href={profileHref ?? '/menu'}
                     className="flex flex-col items-center p-2 mt-2"
                 >
                     <Image
