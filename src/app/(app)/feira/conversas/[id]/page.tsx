@@ -17,6 +17,11 @@ const POLL_MS = 5000
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params)
+    // key: a different conversation mounts a fresh chat, so no messages, draft or cursor carry over.
+    return <Chat key={id} id={id} />
+}
+
+function Chat({ id }: { id: string }) {
     const { data: session } = useSession()
     const token = session?.user.token
     const me = session?.user.profileId
@@ -34,13 +39,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     const lastId = useRef(0)
     const bottom = useRef<HTMLDivElement>(null)
 
-    const poll = useCallback(async () => {
+    const poll = useCallback(async (isActive: () => boolean = () => true) => {
         if (!token || document.hidden) return
         try {
             const { data } = await axios.get<ChatMessage[]>(
                 `${API_URL}/conversations/${id}/messages?after=${lastId.current}`,
                 authHeaders(token),
             )
+            if (!isActive()) return
             if (data.length > 0) {
                 lastId.current = data[data.length - 1].id
                 setMessages((current) => [...current, ...data.filter((m) => !current.some((c) => c.id === m.id))])
@@ -51,11 +57,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }, [id, token])
 
     useEffect(() => {
-        poll()
-        const timer = setInterval(poll, POLL_MS)
-        const onVisible = () => !document.hidden && poll()
+        let active = true
+        const isActive = () => active
+        poll(isActive)
+        const timer = setInterval(() => poll(isActive), POLL_MS)
+        const onVisible = () => !document.hidden && poll(isActive)
         document.addEventListener('visibilitychange', onVisible)
         return () => {
+            active = false
             clearInterval(timer)
             document.removeEventListener('visibilitychange', onVisible)
         }

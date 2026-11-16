@@ -20,6 +20,20 @@ import { API_URL, useListingCategories } from '@/components/marketplace/use-mark
 
 const MAX_PHOTOS = 8
 
+/** "1.500,00", "1500,5", "1500.50" and "1.500" (thousands) all become cents; anything else is null. */
+function parsePriceCents(input: string): number | null {
+    const text = input.trim()
+    if (!text) return null
+    let normalized = text
+    if (text.includes(',')) {
+        normalized = text.replace(/\./g, '').replace(',', '.')
+    } else if (/^\d{1,3}(\.\d{3})+$/.test(text)) {
+        normalized = text.replace(/\./g, '')
+    }
+    if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null
+    return Math.round(parseFloat(normalized) * 100)
+}
+
 const TYPE_HINTS: Record<ListingType, string> = {
     SALE: 'Você define o preço e combina a entrega no chat.',
     DONATION: 'De graça para quem precisar. Expira em 14 dias.',
@@ -45,8 +59,11 @@ export default function NewListingPage() {
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const priceCents = price ? Math.round(parseFloat(price.replace(',', '.')) * 100) : null
-    const priceValid = type !== 'SALE' || (priceCents !== null && priceCents > 0)
+    const priceCents = parsePriceCents(price)
+    // WANTED price is optional, but if typed it must be a valid amount.
+    const priceValid =
+        type === 'DONATION' ||
+        (type === 'SALE' ? priceCents !== null && priceCents > 0 : !price || priceCents !== null)
     const valid = title.trim().length >= 3 && category !== '' && priceValid && !uploading
 
     async function addPhotos(files: FileList | null) {
