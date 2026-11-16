@@ -2,7 +2,7 @@ import { ChatCircleIcon, HeartIcon } from '@phosphor-icons/react/dist/ssr'
 
 export function PostSkeleton() {
     return (
-        <div className="border border-neutral-100 rounded-xl p-4 mb-4">
+        <div className="border-b border-neutral-100 py-4 px-1 sm:px-2">
             <svg
                 role="img"
                 width="576"

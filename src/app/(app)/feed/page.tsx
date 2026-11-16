@@ -6,6 +6,9 @@ import { PostSkeleton } from '@/components/post/post-skeleton'
 import { fetcherWithToken } from '@/lib/swr'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
+import { FeedEmptyState, FeedEndState } from '@/components/feed/feed-empty-state'
+import { FeedFilter, FeedSort, FeedTabs } from '@/components/feed/feed-tabs'
 import useSWR from 'swr'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
@@ -20,14 +23,31 @@ export default function Feed() {
         },
     })
 
+    const [filter, setFilter] = useState<FeedFilter>('ALL')
+    const [sort, setSort] = useState<FeedSort>('RECENT')
+
     const { data, isLoading, mutate } = useSWR(
         user ? [`${API_URL}/feed`, user?.user?.token] : null,
         fetcherWithToken,
     )
 
+    const posts: PostProps[] = useMemo(() => {
+        const all: PostProps[] = data?.content ?? []
+        const filtered =
+            filter === 'ALL' ? all : all.filter((p) => p.type === filter)
+        if (sort === 'RECENT') return filtered
+        return [...filtered].sort((a, b) => b.reactionsCount - a.reactionsCount)
+    }, [data, filter, sort])
+
     return (
         <div className="w-full h-full">
             <OfficialAlertBanner />
+            <FeedTabs
+                filter={filter}
+                onFilterChange={setFilter}
+                sort={sort}
+                onSortChange={setSort}
+            />
             {isLoading ? (
                 <div>
                     <PostSkeleton />
@@ -35,8 +55,7 @@ export default function Feed() {
                     <PostSkeleton />
                 </div>
             ) : (
-                data &&
-                data.content.map((postData: PostProps) => (
+                posts.map((postData) => (
                     <Post
                         mutate={mutate}
                         key={postData.id}
@@ -45,11 +64,10 @@ export default function Feed() {
                     />
                 ))
             )}
-            {!isLoading && data?.content.length === 0 && (
-                <div className="text-center font-semibold text-lg text-neutral-500 mt-10">
-                    Poxa, não há posts para mostrar.
-                </div>
+            {!isLoading && posts.length === 0 && (
+                <FeedEmptyState filter={filter} />
             )}
+            {!isLoading && posts.length > 0 && <FeedEndState />}
         </div>
     )
 }

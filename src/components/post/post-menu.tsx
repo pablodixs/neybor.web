@@ -15,6 +15,8 @@ import { useSession } from 'next-auth/react'
 import { Portal } from '../portal'
 import { Button } from '../button'
 import { Spinner } from '../spinner'
+import { useToast } from '../toast'
+import { shareLink } from '@/lib/share'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
@@ -26,6 +28,8 @@ interface PostMenuProps {
     authorId: number | undefined
     buttonSize?: 'small' | 'default'
     isBookmarked?: boolean
+    /** Caminho do post (ex.: /handle/post/1); usado ao compartilhar. */
+    shareUrl?: string
 }
 
 export function PostMenu({
@@ -35,6 +39,7 @@ export function PostMenu({
     onPostDeleted,
     buttonSize = 'default',
     isBookmarked,
+    shareUrl,
     onPostSaved,
 }: PostMenuProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -45,6 +50,7 @@ export function PostMenu({
     const menuRef = useRef<HTMLDivElement>(null)
     const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
     const { data: session } = useSession()
+    const toast = useToast()
 
     useEffect(() => {
         if (!isMenuOpen) return
@@ -117,9 +123,10 @@ export function PostMenu({
                     Authorization: `Bearer ${session?.user?.token}`,
                 },
             })
-            console.log('Post salvo com sucesso')
+            toast.show(isBookmarked ? 'Removido dos salvos' : 'Post salvo')
         } catch (error) {
             console.error('Erro ao salvar post:', error)
+            toast.show('Não foi possível salvar agora.', 'error')
         } finally {
             onPostSaved?.()
             setIsSavingToBookmarks(false)
@@ -128,28 +135,12 @@ export function PostMenu({
     }
 
     const handleShare = async () => {
-        const postUrl = `${window.location.origin}/post/${postId}`
-
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'Compartilhar post',
-                    url: postUrl,
-                })
-            } catch {
-                console.log('Compartilhamento cancelado')
-            }
-        } else {
-            // Fallback: copiar URL para clipboard
-            try {
-                await navigator.clipboard.writeText(postUrl)
-                // TODO: Adicionar feedback visual
-                console.log('Link copiado para a área de transferência')
-            } catch (error) {
-                console.error('Erro ao copiar link:', error)
-            }
-        }
         setIsMenuOpen(false)
+        const url = `${window.location.origin}${shareUrl ?? `/post/${postId}`}`
+        const result = await shareLink(url, 'Post no Neybor')
+        if (result === 'copied') toast.show('Link copiado')
+        if (result === 'failed')
+            toast.show('Não foi possível compartilhar.', 'error')
     }
 
     const handleReport = async () => {
@@ -167,10 +158,10 @@ export function PostMenu({
                         },
                     },
                 )
-                // TODO: Adicionar feedback visual
-                console.log('Post denunciado com sucesso')
+                toast.show('Denúncia enviada. Obrigado por ajudar o bairro.')
             } catch (error) {
                 console.error('Erro ao denunciar post:', error)
+                toast.show('Não foi possível denunciar agora.', 'error')
             }
         }
         setIsMenuOpen(false)

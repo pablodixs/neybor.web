@@ -1,12 +1,14 @@
 import { Button } from '../button'
 import { InstallBanner } from '../pwa/install-banner'
 import { MyNeighborhoodAlerts } from './my-neighborhood-alerts'
+import { NewInFeira } from './new-in-feira'
 
 export function TrailingAside() {
     return (
         <aside className="hidden xl:block w-80 shrink-0 sticky top-20 self-start">
             <InstallBanner variant="card" />
             <MyNeighborhoodAlerts />
+            <NewInFeira />
             <div className="bg-white border border-neutral-100 p-4 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto mb-4">
                 <h2 className="text-xl font-semibold mb-2 text-neutral-700">
                     Convide seus vizinhos!
