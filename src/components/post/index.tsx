@@ -1,6 +1,7 @@
 'use client'
 
 import {
+    BookmarkSimpleIcon,
     HouseLineIcon,
     SealCheckIcon,
     SealWarningIcon,
@@ -9,6 +10,7 @@ import {
     ChatCircleIcon,
     GlobeSimpleIcon,
     HeartIcon,
+    ShareNetworkIcon,
     WarehouseIcon,
 } from '@phosphor-icons/react/dist/ssr'
 import axios from 'axios'
@@ -18,6 +20,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { AlertLocationMap } from '@/components/map/alert-location-map'
+import { shareLink } from '@/lib/share'
+import { useToast } from '../toast'
 import { PostMenu } from './post-menu'
 
 export interface Author {
@@ -65,6 +69,33 @@ export function Post({
 }: PostComponentProps & { currentUserToken: string }) {
     const [liked, setLiked] = useState(data.likedByMe)
     const [reactionsCount, setReactionsCount] = useState(data.reactionsCount)
+    const [saved, setSaved] = useState(data.isBookmarked)
+    const toast = useToast()
+    const postPath = `/${data.author.handle}/post/${data.id}`
+
+    const handleShare = async () => {
+        const result = await shareLink(
+            `${window.location.origin}${postPath}`,
+            'Post no Neybor',
+        )
+        if (result === 'copied') toast.show('Link copiado')
+        if (result === 'failed')
+            toast.show('Não foi possível compartilhar.', 'error')
+    }
+
+    const handleBookmark = () => {
+        const next = !saved
+        setSaved(next)
+        axios
+            .post(`${API_URL}/post/${data.id}/bookmark`, null, {
+                headers: { Authorization: `Bearer ${currentUserToken}` },
+            })
+            .then(() => toast.show(next ? 'Post salvo' : 'Removido dos salvos'))
+            .catch(() => {
+                setSaved(!next)
+                toast.show('Não foi possível salvar agora.', 'error')
+            })
+    }
 
     const handleLike = (postId: number, currentUserToken: string) => {
         setLiked(!liked)
@@ -95,7 +126,7 @@ export function Post({
     }
 
     return (
-        <div className="w-full border border-neutral-100 rounded-2xl p-4 bg-white mb-4">
+        <article className="w-full border-b border-neutral-100 py-4 px-1 sm:px-2 bg-white">
             <header className="flex justify-between items-start">
                 <Link
                     className="flex gap-2 items-center"
@@ -151,7 +182,8 @@ export function Post({
                         authorId={data.author.id}
                         postId={data.id}
                         onPostDeleted={onPostDeleted}
-                        isBookmarked={data.isBookmarked}
+                        isBookmarked={saved}
+                        shareUrl={postPath}
                         onPostSaved={() => mutate()}
                     />
                 </div>
@@ -169,7 +201,7 @@ export function Post({
                     />
                 )}
             </section>
-            <footer className="pl-11 flex gap-4 text-neutral-500 items-center -m-2">
+            <footer className="pl-11 flex gap-4 text-neutral-500 items-center -mx-2 -mb-2 mt-1">
                 <button
                     onClick={() => handleLike(data.id, currentUserToken)}
                     data-liked={liked}
@@ -186,7 +218,25 @@ export function Post({
                         {data.commentsCount > 0 && data.commentsCount}
                     </span>
                 </button>
+                <span className="flex-1" />
+                <button
+                    onClick={handleShare}
+                    aria-label="Compartilhar"
+                    title="Compartilhar"
+                    className="text-lg cursor-pointer hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-colors"
+                >
+                    <ShareNetworkIcon weight="bold" />
+                </button>
+                <button
+                    onClick={handleBookmark}
+                    data-saved={saved}
+                    aria-label={saved ? 'Remover dos salvos' : 'Salvar'}
+                    title={saved ? 'Remover dos salvos' : 'Salvar'}
+                    className="text-lg cursor-pointer data-[saved=true]:text-green-600 hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-colors"
+                >
+                    <BookmarkSimpleIcon weight={saved ? 'fill' : 'bold'} />
+                </button>
             </footer>
-        </div>
+        </article>
     )
 }

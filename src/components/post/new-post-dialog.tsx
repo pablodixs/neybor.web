@@ -28,6 +28,7 @@ import { CircularProgressIndicator } from '../circular-progress-indicator'
 import { Button } from '../button'
 import axios from 'axios'
 import { Tooltip } from '../tooltip'
+import { useToast } from '../toast'
 import { friendlyApiError } from '@/lib/api-error'
 import { AlertCategoryKey, AlertCategoryPicker } from './alert-category-picker'
 import { RecomendationsLabel } from './post-type-labels/recomendations-label'
@@ -94,6 +95,7 @@ export function NewPostDialog({
     >(null)
 
     const { data } = useSession()
+    const toast = useToast()
 
     function handleLocate() {
         if (coords) {
@@ -170,6 +172,7 @@ export function NewPostDialog({
                         typeof key[0] === 'string' &&
                         /\/(alerts|feed)/.test(key[0]),
                 )
+                toast.show('Publicado! Seus vizinhos já podem ver.')
                 onClose()
             })
             .catch((error) => {
