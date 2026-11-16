@@ -60,8 +60,8 @@ export default function MenuPage() {
             enabled: true,
         },
         {
-            href: '/marketplace',
-            label: 'Marketplace',
+            href: '/feira',
+            label: 'Feira do Bairro',
             icon: BagSimpleIcon,
             enabled: isFeatureEnabled('marketplace'),
         },

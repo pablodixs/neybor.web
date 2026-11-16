@@ -41,8 +41,8 @@ export function LeadingAside() {
 
     const links: AsideLink[] = [
         {
-            href: '/marketplace',
-            label: 'Marketplace',
+            href: '/feira',
+            label: 'Feira do Bairro',
             icon: BagSimpleIcon,
             enabled: isFeatureEnabled('marketplace'),
         },
