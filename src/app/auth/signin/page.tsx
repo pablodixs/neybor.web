@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import axios from 'axios'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signIn, useSession } from 'next-auth/react'
@@ -9,7 +10,6 @@ import { FormEvent, useEffect, useRef, useState } from 'react'
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
-    CheckCircleIcon,
     DeviceMobileCameraIcon,
     EyeIcon,
     EyeSlashIcon,
@@ -28,11 +28,12 @@ import { Spinner } from '@/components/spinner'
 import { Heading } from '@/components/typography/heading'
 import { formatPhone } from '@/utils/phone-formatter'
 import {
-    AddressSuggestion,
+    approximatePoint,
+    formatCep,
     getDevicePosition,
-    isGeocodingAvailable,
-    reverseGeocode,
-    searchAddress,
+    LatLng,
+    lookupCep,
+    onlyDigits,
 } from '@/lib/geocoding'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
@@ -90,12 +91,6 @@ function passwordProblem(password: string, confirmPassword: string) {
         return 'As senhas não são iguais.'
     }
     return null
-}
-
-type SelectedAddress = AddressSuggestion & {
-    // posição do aparelho no momento da confirmação, usada como verificação básica
-    deviceLatitude?: number
-    deviceLongitude?: number
 }
 
 export default function SignUpPage() {
@@ -567,6 +562,31 @@ export default function SignUpPage() {
     )
 }
 
+const PinMap = dynamic(() => import('@/components/auth/pin-map'), {
+    ssr: false,
+    loading: () => <div className="h-[220px] rounded-lg bg-neutral-100" />,
+})
+
+const HAS_MAP = Boolean(process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)
+
+type AddressFields = {
+    zipCode: string
+    street: string
+    number: string
+    neighborhood: string
+    city: string
+    state: string
+}
+
+const EMPTY_ADDRESS: AddressFields = {
+    zipCode: '',
+    street: '',
+    number: '',
+    neighborhood: '',
+    city: '',
+    state: '',
+}
+
 function AddressStep({
     firstName,
     token,
@@ -576,37 +596,47 @@ function AddressStep({
     token?: string
     onDone: () => void
 }) {
-    const geocodingAvailable = isGeocodingAvailable()
-
-    const [query, setQuery] = useState('')
-    const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
-    const [selected, setSelected] = useState<SelectedAddress | null>(null)
-    const [number, setNumber] = useState('')
-    const [manual, setManual] = useState({ neighborhood: '', city: '' })
+    const [cep, setCep] = useState('')
+    const [address, setAddress] = useState<AddressFields | null>(null)
+    const [point, setPoint] = useState<LatLng | null>(null)
+    const [pointIsPrecise, setPointIsPrecise] = useState(false)
+    const [device, setDevice] = useState<LatLng | null>(null)
+    const [isLookingUp, setIsLookingUp] = useState(false)
     const [isLocating, setIsLocating] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    // busca com um pequeno atraso enquanto a pessoa digita
-    useEffect(() => {
-        if (selected || query.trim().length < 3) return
-        const controller = new AbortController()
-        const timeout = setTimeout(() => {
-            searchAddress(query, controller.signal)
-                .then(setSuggestions)
-                .catch(() => {})
-        }, 300)
-        return () => {
-            clearTimeout(timeout)
-            controller.abort()
+    async function searchCep(event?: FormEvent) {
+        event?.preventDefault()
+        if (onlyDigits(cep).length !== 8) {
+            setError('O CEP tem 8 números.')
+            return
         }
-    }, [query, selected])
-
-    function choose(suggestion: SelectedAddress) {
-        setSelected(suggestion)
-        setNumber(suggestion.number || '')
-        setSuggestions([])
         setError(null)
+        setIsLookingUp(true)
+        try {
+            const found = await lookupCep(cep)
+            if (!found) {
+                setError('Não encontramos esse CEP. Confira os números.')
+                return
+            }
+            setAddress({ ...EMPTY_ADDRESS, ...found })
+            // o GPS, se já veio, vale mais que o ponto aproximado do endereço
+            if (!device) {
+                const approx = await approximatePoint(found)
+                if (approx) {
+                    setPoint(approx.point)
+                    setPointIsPrecise(approx.precise)
+                }
+            }
+        } catch {
+            setError(
+                'Não conseguimos consultar o CEP agora. Preencha o endereço abaixo.',
+            )
+            setAddress({ ...EMPTY_ADDRESS, zipCode: onlyDigits(cep) })
+        } finally {
+            setIsLookingUp(false)
+        }
     }
 
     async function useMyLocation() {
@@ -614,23 +644,14 @@ function AddressStep({
         setIsLocating(true)
         try {
             const position = await getDevicePosition()
-            const { latitude, longitude } = position.coords
-            const found = await reverseGeocode(latitude, longitude).catch(
-                () => null,
-            )
-
-            choose({
-                ...(found || {
-                    id: 'device',
-                    label: 'Minha localização atual',
-                    secondary: '',
-                }),
-                // o ponto salvo é onde a pessoa está, não o centro da rua
-                latitude,
-                longitude,
-                deviceLatitude: latitude,
-                deviceLongitude: longitude,
-            })
+            const here = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+            }
+            setDevice(here)
+            setPoint(here)
+            setPointIsPrecise(true)
+            if (!address) setAddress({ ...EMPTY_ADDRESS })
         } catch (e) {
             const denied =
                 typeof GeolocationPositionError !== 'undefined' &&
@@ -638,8 +659,8 @@ function AddressStep({
                 e.code === e.PERMISSION_DENIED
             setError(
                 denied
-                    ? 'Você não permitiu o acesso à localização. Digite seu endereço ou libere a permissão no navegador.'
-                    : 'Não conseguimos pegar sua localização. Tente digitar o endereço.',
+                    ? 'Você não permitiu o acesso à localização. Use o CEP ou libere a permissão no navegador.'
+                    : 'Não conseguimos pegar sua localização. Use o CEP.',
             )
         } finally {
             setIsLocating(false)
@@ -647,26 +668,33 @@ function AddressStep({
     }
 
     async function save() {
-        if (!selected) return
-        const neighborhood = selected.neighborhood || manual.neighborhood.trim()
-        const city = selected.city || manual.city.trim()
-        if (!neighborhood || !city) {
+        if (!address) return
+        if (!address.neighborhood.trim() || !address.city.trim()) {
             setError('Informe o bairro e a cidade.')
+            return
+        }
+        if (!point) {
+            setError(
+                HAS_MAP
+                    ? 'Toque no mapa para marcar onde fica sua casa.'
+                    : 'Use sua localização atual para marcar onde fica sua casa.',
+            )
             return
         }
 
         setIsSaving(true)
         setError(null)
 
-        // Se a pessoa digitou o endereço, tentamos a posição do aparelho só como
+        // Se a pessoa não usou o GPS, tentamos a posição do aparelho só como
         // prova de que está lá; recusar não impede o cadastro.
-        let deviceLatitude = selected.deviceLatitude
-        let deviceLongitude = selected.deviceLongitude
-        if (deviceLatitude == null) {
+        let proof = device
+        if (!proof) {
             try {
                 const position = await getDevicePosition()
-                deviceLatitude = position.coords.latitude
-                deviceLongitude = position.coords.longitude
+                proof = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                }
             } catch {
                 // segue sem verificação
             }
@@ -676,15 +704,15 @@ function AddressStep({
             await axios.put(
                 `${API_URL}/profile/me/location`,
                 {
-                    street: selected.street,
-                    number: number.trim() || undefined,
-                    neighborhood,
-                    city,
-                    zipCode: selected.zipCode,
-                    latitude: selected.latitude,
-                    longitude: selected.longitude,
-                    deviceLatitude,
-                    deviceLongitude,
+                    street: address.street.trim() || undefined,
+                    number: address.number.trim() || undefined,
+                    neighborhood: address.neighborhood.trim(),
+                    city: address.city.trim(),
+                    zipCode: address.zipCode || undefined,
+                    latitude: point.latitude,
+                    longitude: point.longitude,
+                    deviceLatitude: proof?.latitude,
+                    deviceLongitude: proof?.longitude,
                 },
                 { headers: { Authorization: `Bearer ${token}` } },
             )
@@ -701,10 +729,11 @@ function AddressStep({
         }
     }
 
-    const visibleSuggestions =
-        selected || query.trim().length < 3 ? [] : suggestions
-    const needsManualFields =
-        selected && (!selected.neighborhood || !selected.city)
+    const update = (field: keyof AddressFields) => (value: string) =>
+        setAddress((current) => ({
+            ...(current ?? EMPTY_ADDRESS),
+            [field]: value,
+        }))
 
     return (
         <div className="flex-1 flex flex-col overflow-auto">
@@ -724,136 +753,122 @@ function AddressStep({
                 </div>
             )}
 
-            {!selected && (
-                <>
-                    {geocodingAvailable && (
-                        <div className="relative">
-                            <Input
-                                fullWidth
-                                autoFocus
-                                type="text"
-                                autoComplete="street-address"
-                                placeholder="Digite sua rua e número"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                            />
-                            {visibleSuggestions.length > 0 && (
-                                <ul className="mt-2 border-2 border-neutral-100 rounded-lg divide-y divide-neutral-100">
-                                    {visibleSuggestions.map((suggestion) => (
-                                        <li key={suggestion.id}>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    choose(suggestion)
-                                                }
-                                                className="w-full text-left px-4 py-3 hover:bg-neutral-50 cursor-pointer flex gap-2 items-start"
-                                            >
-                                                <MapPinIcon
-                                                    size={18}
-                                                    weight="bold"
-                                                    className="text-neutral-400 mt-0.5 shrink-0"
-                                                />
-                                                <span>
-                                                    <span className="block font-semibold text-neutral-800">
-                                                        {suggestion.label}
-                                                    </span>
-                                                    <span className="block text-sm text-neutral-500">
-                                                        {suggestion.secondary}
-                                                    </span>
-                                                </span>
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    )}
-                    <div className="mt-4">
-                        <Button
-                            type="button"
-                            variant="bordered"
-                            iconPlacement="leading"
-                            icon={NavigationArrowIcon}
-                            onClick={useMyLocation}
-                            disabled={isLocating}
-                            activityIndicator={isLocating}
-                        >
-                            Usar minha localização atual
-                        </Button>
-                    </div>
-                </>
-            )}
+            <div className="flex gap-2 items-start">
+                <div className="flex-1">
+                    <Input
+                        fullWidth
+                        autoFocus
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="postal-code"
+                        placeholder="CEP"
+                        value={formatCep(cep)}
+                        onChange={(e) =>
+                            setCep(onlyDigits(e.target.value).slice(0, 8))
+                        }
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault()
+                                void searchCep()
+                            }
+                        }}
+                    />
+                </div>
+                <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => void searchCep()}
+                    disabled={isLookingUp}
+                    activityIndicator={isLookingUp}
+                >
+                    Buscar
+                </Button>
+            </div>
 
-            {selected && (
-                <div className="flex flex-col gap-4">
-                    <div className="border-2 border-green-600 rounded-lg p-4 flex gap-2 items-start">
-                        <CheckCircleIcon
-                            size={20}
-                            weight="fill"
-                            className="text-green-600 shrink-0 mt-0.5"
-                        />
-                        <div className="flex-1">
-                            <p className="font-semibold text-neutral-800">
-                                {selected.label}
-                            </p>
-                            {selected.secondary && (
-                                <p className="text-sm text-neutral-500">
-                                    {selected.secondary}
-                                </p>
-                            )}
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSelected(null)
-                                setError(null)
-                            }}
-                            className="text-sm font-semibold text-green-600 cursor-pointer"
-                        >
-                            Alterar
-                        </button>
-                    </div>
-                    {!selected.number && selected.street && (
+            <div className="mt-3">
+                <Button
+                    type="button"
+                    variant="bordered"
+                    iconPlacement="leading"
+                    icon={NavigationArrowIcon}
+                    onClick={useMyLocation}
+                    disabled={isLocating}
+                    activityIndicator={isLocating}
+                >
+                    {device
+                        ? 'Localização atualizada'
+                        : 'Usar minha localização atual'}
+                </Button>
+            </div>
+
+            {address && (
+                <div className="mt-4 flex flex-col gap-2">
+                    <div className="grid grid-cols-[1fr_96px] gap-2">
                         <Input
                             fullWidth
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="Número (opcional)"
-                            maxLength={20}
-                            value={number}
-                            onChange={(e) => setNumber(e.target.value)}
+                            placeholder="Rua"
+                            autoComplete="address-line1"
+                            value={address.street}
+                            onChange={(e) => update('street')(e.target.value)}
                         />
-                    )}
-                    {needsManualFields && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {!selected.neighborhood && (
-                                <Input
-                                    fullWidth
-                                    placeholder="Bairro"
-                                    value={manual.neighborhood}
-                                    onChange={(e) =>
-                                        setManual({
-                                            ...manual,
-                                            neighborhood: e.target.value,
-                                        })
-                                    }
-                                />
-                            )}
-                            {!selected.city && (
-                                <Input
-                                    fullWidth
-                                    placeholder="Cidade"
-                                    value={manual.city}
-                                    onChange={(e) =>
-                                        setManual({
-                                            ...manual,
-                                            city: e.target.value,
-                                        })
-                                    }
-                                />
-                            )}
+                        <Input
+                            fullWidth
+                            placeholder="Número"
+                            inputMode="numeric"
+                            maxLength={20}
+                            value={address.number}
+                            onChange={(e) => update('number')(e.target.value)}
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_72px] gap-2">
+                        <Input
+                            fullWidth
+                            placeholder="Bairro"
+                            value={address.neighborhood}
+                            onChange={(e) =>
+                                update('neighborhood')(e.target.value)
+                            }
+                        />
+                        <Input
+                            fullWidth
+                            placeholder="Cidade"
+                            autoComplete="address-level2"
+                            value={address.city}
+                            onChange={(e) => update('city')(e.target.value)}
+                        />
+                        <Input
+                            fullWidth
+                            placeholder="UF"
+                            maxLength={2}
+                            value={address.state}
+                            onChange={(e) =>
+                                update('state')(e.target.value.toUpperCase())
+                            }
+                        />
+                    </div>
+
+                    {HAS_MAP && point && (
+                        <div className="mt-2">
+                            <p className="text-sm text-neutral-600 font-medium mb-2 flex items-center gap-1">
+                                <MapPinIcon size={16} weight="bold" />
+                                {pointIsPrecise
+                                    ? 'Confira o pino: arraste ou toque no mapa se não for a sua casa.'
+                                    : 'Mostramos a região do seu bairro. Toque no mapa onde fica sua casa.'}
+                            </p>
+                            <PinMap
+                                point={point}
+                                zoom={pointIsPrecise ? 16 : 14}
+                                onChange={(next) => {
+                                    setPoint(next)
+                                    setPointIsPrecise(true)
+                                }}
+                            />
+                            <p className="text-[11px] text-neutral-400 mt-1">
+                                Endereços: ViaCEP e © OpenStreetMap
+                            </p>
                         </div>
                     )}
+
                     <Button
                         type="button"
                         fullWidth

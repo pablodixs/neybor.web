@@ -1,117 +1,126 @@
 /**
- * Busca de endereços (Mapbox Geocoding v6), restrita ao Brasil e em português.
- * Usada no cadastro para transformar o endereço digitado, ou a posição do
- * aparelho, em rua, bairro, cidade, CEP e coordenadas.
+ * Endereço no cadastro, só com fontes que podemos guardar:
+ * - CEP pelo ViaCEP (gratuito, dados dos Correios) para rua, bairro e cidade;
+ * - ponto aproximado pelo Nominatim/OpenStreetMap (ODbL, pode ser guardado
+ *   com atribuição), usado só para posicionar o pino;
+ * - o ponto final é o GPS do aparelho ou onde a pessoa coloca o pino.
+ * Não usamos o geocoding do Mapbox: os termos dele proíbem guardar resultados
+ * temporários.
  */
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ''
-const GEOCODING_URL = 'https://api.mapbox.com/search/geocode/v6'
-
-export type AddressSuggestion = {
-    id: string
-    label: string
-    secondary: string
-    street?: string
-    number?: string
-    neighborhood?: string
-    city?: string
-    state?: string
-    zipCode?: string
-    latitude: number
-    longitude: number
+export type CepAddress = {
+    zipCode: string
+    street: string
+    neighborhood: string
+    city: string
+    state: string
 }
 
-type MapboxFeature = {
-    id: string
-    properties: {
-        mapbox_id?: string
-        name?: string
-        full_address?: string
-        place_formatted?: string
-        coordinates: { latitude: number; longitude: number }
-        context?: {
-            address?: { address_number?: string; street_name?: string }
-            street?: { name?: string }
-            neighborhood?: { name?: string }
-            locality?: { name?: string }
-            place?: { name?: string }
-            region?: { name?: string; region_code?: string }
-            postcode?: { name?: string }
-        }
+export type LatLng = { latitude: number; longitude: number }
+
+export function onlyDigits(value: string) {
+    return value.replace(/\D/g, '')
+}
+
+export function formatCep(value: string) {
+    const digits = onlyDigits(value).slice(0, 8)
+    return digits.length > 5
+        ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+        : digits
+}
+
+/** null quando o CEP não existe. Lança erro quando o serviço não responde. */
+export async function lookupCep(cep: string): Promise<CepAddress | null> {
+    const digits = onlyDigits(cep)
+    if (digits.length !== 8) return null
+
+    const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
+    if (!response.ok) {
+        if (response.status === 400) return null
+        throw new Error(`ViaCEP ${response.status}`)
     }
-}
-
-export function isGeocodingAvailable() {
-    return MAPBOX_TOKEN !== ''
-}
-
-function toSuggestion(feature: MapboxFeature): AddressSuggestion {
-    const { properties } = feature
-    const context = properties.context || {}
+    const data = (await response.json()) as {
+        erro?: boolean | string
+        logradouro?: string
+        bairro?: string
+        localidade?: string
+        uf?: string
+    }
+    if (data.erro) return null
 
     return {
-        id: properties.mapbox_id || feature.id,
-        label: properties.name || properties.full_address || '',
-        secondary: properties.place_formatted || '',
-        street: context.address?.street_name || context.street?.name,
-        number: context.address?.address_number,
-        // em muitas cidades o Mapbox traz o bairro como "locality"
-        neighborhood: context.neighborhood?.name || context.locality?.name,
-        city: context.place?.name,
-        state: context.region?.region_code || context.region?.name,
-        zipCode: context.postcode?.name,
-        latitude: properties.coordinates.latitude,
-        longitude: properties.coordinates.longitude,
+        zipCode: digits,
+        street: data.logradouro || '',
+        neighborhood: data.bairro || '',
+        city: data.localidade || '',
+        state: data.uf || '',
     }
 }
 
-async function request(
-    path: string,
-    params: Record<string, string>,
-    signal?: AbortSignal,
-) {
-    const query = new URLSearchParams({
-        access_token: MAPBOX_TOKEN,
-        country: 'br',
-        language: 'pt',
-        ...params,
-    })
-    const response = await fetch(`${GEOCODING_URL}/${path}?${query}`, {
-        signal,
-    })
-    if (!response.ok) {
-        throw new Error(`Geocoding failed: ${response.status}`)
+/**
+ * Ponto aproximado do endereço, só para centralizar o mapa. Tenta a rua e,
+ * se não achar, o bairro/cidade. Poucas chamadas por cadastro, dentro da
+ * política de uso do Nominatim (máx. 1 por segundo).
+ */
+export async function approximatePoint(
+    address: Partial<CepAddress> & { number?: string },
+): Promise<{ point: LatLng; precise: boolean } | null> {
+    const attempts: Array<{ query: Record<string, string>; precise: boolean }> =
+        []
+    if (address.street && address.city) {
+        attempts.push({
+            query: {
+                street: [address.number, address.street]
+                    .filter(Boolean)
+                    .join(' '),
+                city: address.city,
+                state: address.state || '',
+            },
+            precise: true,
+        })
     }
-    const data = (await response.json()) as { features?: MapboxFeature[] }
-    return (data.features || []).map(toSuggestion)
-}
-
-export function searchAddress(text: string, signal?: AbortSignal) {
-    if (!isGeocodingAvailable() || text.trim().length < 3) {
-        return Promise.resolve([])
+    if (address.city) {
+        attempts.push({
+            query: {
+                q: [address.neighborhood, address.city, address.state]
+                    .filter(Boolean)
+                    .join(', '),
+            },
+            precise: false,
+        })
     }
-    return request(
-        'forward',
-        {
-            q: text.trim(),
-            types: 'address,street',
-            autocomplete: 'true',
-            limit: '5',
-            // dá preferência a endereços perto de onde a pessoa está
-            proximity: 'ip',
-        },
-        signal,
-    )
-}
 
-export async function reverseGeocode(latitude: number, longitude: number) {
-    if (!isGeocodingAvailable()) return null
-    const [first] = await request('reverse', {
-        latitude: String(latitude),
-        longitude: String(longitude),
-        types: 'address,street',
-    })
-    return first || null
+    for (const attempt of attempts) {
+        try {
+            const params = new URLSearchParams({
+                ...attempt.query,
+                countrycodes: 'br',
+                format: 'jsonv2',
+                limit: '1',
+                'accept-language': 'pt-BR',
+            })
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?${params}`,
+            )
+            if (!response.ok) continue
+            const [first] = (await response.json()) as Array<{
+                lat: string
+                lon: string
+            }>
+            if (first) {
+                return {
+                    point: {
+                        latitude: Number(first.lat),
+                        longitude: Number(first.lon),
+                    },
+                    precise: attempt.precise,
+                }
+            }
+        } catch {
+            // tenta a próxima forma
+        }
+    }
+    return null
 }
 
 export function getDevicePosition(): Promise<GeolocationPosition> {
