@@ -5,6 +5,7 @@ import {
     GearSixIcon,
     PencilSimpleLineIcon,
     UserIcon,
+    WrenchIcon,
     UsersThreeIcon,
 } from '@phosphor-icons/react'
 import Image from 'next/image'
@@ -15,6 +16,7 @@ import { useState } from 'react'
 import { NewPostDialog } from '../post/new-post-dialog'
 import { AnimatePresence } from 'motion/react'
 import { usePathname } from 'next/navigation'
+import { ProfileSwitcher } from '../services/profile-switcher'
 
 export function LeadingAside() {
     const path = usePathname()
@@ -48,7 +50,21 @@ export function LeadingAside() {
                             {data.user.displayName}
                         </strong>
                     </Link>
+                    <ProfileSwitcher />
                     <div className="mt-4 flex flex-col gap-2">
+                        <Link
+                            data-active={path.startsWith('/servicos')}
+                            href={'/servicos'}
+                            className="data-[active=true]:text-green-600 flex items-center gap-2 py-3 px-4 font-semibold text-neutral-700 hover:text-green-700 rounded-full hover:bg-green-50 transition-all"
+                        >
+                            <WrenchIcon
+                                size={20}
+                                weight={
+                                    path.startsWith('/servicos') ? 'fill' : 'bold'
+                                }
+                            />{' '}
+                            Serviços
+                        </Link>
                         <Link
                             data-active={path === '/marketplace'}
                             href={'/marketplace'}

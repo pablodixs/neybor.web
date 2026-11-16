@@ -304,7 +304,23 @@ export const authOptions: AuthOptions = {
         newUser: '/auth/signin',
     },
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
+            if (trigger === 'update' && session?.switchedProfile) {
+                const switched = session.switchedProfile as BackendAuthResponse
+                return {
+                    ...token,
+                    profileId: switched.profileId,
+                    token: switched.accessToken,
+                    type: switched.tokenType,
+                    avatarUrl: switched.avatarUrl,
+                    displayName: switched.displayName,
+                    accessTokenExpires: getAccessTokenExpiration(
+                        switched.accessToken,
+                    ),
+                    error: undefined,
+                }
+            }
+
             if (user) {
                 token.profileId = user.profileId
                 token.token = user.token
