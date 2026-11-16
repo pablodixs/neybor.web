@@ -114,3 +114,14 @@ export interface ModerationItem {
     createdAt: string
     reports: ModerationReport[]
 }
+
+/** Post published despite the kindness reminder, waiting for an admin. */
+export interface PostModerationItem {
+    postId: number
+    content: string
+    authorId: number
+    authorHandle: string
+    authorName: string
+    createdAt: string
+    reasons: string[]
+}

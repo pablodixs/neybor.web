@@ -10,10 +10,18 @@ import { Navigation } from '@/components/navigation'
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/button'
 import { fetcherWithToken } from '@/lib/swr'
-import { ModerationItem } from '@/interfaces/marketplace'
+import { ModerationItem, PostModerationItem } from '@/interfaces/marketplace'
 import { formatPrice, REPORT_LABELS, TYPE_LABELS } from '@/components/marketplace/labels'
 import { authHeaders } from '@/components/marketplace/errors'
 import { API_URL, useIsAdmin, useListingCategories } from '@/components/marketplace/use-marketplace'
+
+const KINDNESS_LABELS: Record<string, string> = {
+    OFFENSIVE_LANGUAGE: 'Xingamento',
+    THREAT: 'Ameaça ou justiça com as próprias mãos',
+    PROFILING: 'Suspeito descrito por cor, origem ou aparência',
+    VAGUE_SUSPICION: 'Suspeita sem dizer o que a pessoa fez',
+    SHOUTING: 'Gritaria (maiúsculas e exclamações)',
+}
 
 export default function ModerationPage() {
     const { data: session } = useSession()
@@ -24,7 +32,12 @@ export default function ModerationPage() {
         token && isAdmin ? [`${API_URL}/admin/marketplace/review`, token] : null,
         fetcherWithToken,
     )
+    const { data: posts, mutate: mutatePosts } = useSWR<PostModerationItem[]>(
+        token && isAdmin ? [`${API_URL}/admin/posts/review`, token] : null,
+        fetcherWithToken,
+    )
     const [busyId, setBusyId] = useState<number | null>(null)
+    const [busyPostId, setBusyPostId] = useState<number | null>(null)
     const [message, setMessage] = useState<string | null>(null)
 
     async function decide(item: ModerationItem, action: 'approve' | 'remove') {
@@ -55,9 +68,24 @@ export default function ModerationPage() {
         }
     }
 
+    async function decidePost(post: PostModerationItem, action: 'keep' | 'remove') {
+        if (action === 'remove' && !window.confirm('Remover este post? O autor será avisado.')) return
+        setBusyPostId(post.postId)
+        setMessage(null)
+        try {
+            await axios.post(`${API_URL}/admin/posts/${post.postId}/${action}`, {}, authHeaders(token))
+        } catch {
+            setMessage('Não foi possível salvar a decisão. Tente de novo.')
+        } finally {
+            await mutatePosts()
+            setBusyPostId(null)
+        }
+    }
+
     return (
         <div className="p-4 border border-neutral-100 rounded-2xl bg-white">
-            <Navigation title="Moderação da Feira" />
+            <Navigation title="Moderação" />
+            <h2 className="font-semibold text-neutral-800 mb-2">Anúncios da Feira</h2>
 
             {session && !isAdmin && (
                 <p className="text-neutral-600">Esta área é só para administradores.</p>
@@ -127,6 +155,38 @@ export default function ModerationPage() {
                                 disabled={busyId === item.listingId}
                                 onClick={() => decide(item, 'remove')}
                             >
+                                Remover
+                            </Button>
+                        </div>
+                    </article>
+                ))}
+            </div>
+
+            <h2 className="font-semibold text-neutral-800 mt-8 mb-1">Posts marcados pelo lembrete de gentileza</h2>
+            <p className="text-sm text-neutral-500 mb-3">
+                Publicados mesmo depois do lembrete. Seguem no ar até você decidir.
+            </p>
+            {posts && posts.length === 0 && (
+                <p className="text-center py-6 text-neutral-600">Nenhum post esperando revisão.</p>
+            )}
+            <div className="flex flex-col gap-4">
+                {posts?.map((post) => (
+                    <article key={post.postId} className="p-3 rounded-2xl border border-neutral-100 flex flex-col gap-2">
+                        <p className="text-sm text-neutral-500">
+                            {post.authorName} (@{post.authorHandle}) · há{' '}
+                            {formatDistanceToNowStrict(new Date(post.createdAt), { locale: ptBR })}
+                        </p>
+                        <p className="text-neutral-800 whitespace-pre-wrap">{post.content}</p>
+                        <ul className="list-disc pl-4 text-sm text-orange-700">
+                            {post.reasons.map((r) => (
+                                <li key={r}>{KINDNESS_LABELS[r] ?? r}</li>
+                            ))}
+                        </ul>
+                        <div className="flex gap-2">
+                            <Button size="sm" variant="bordered" disabled={busyPostId === post.postId} onClick={() => decidePost(post, 'keep')}>
+                                Manter
+                            </Button>
+                            <Button size="sm" variant="borderedDestructive" disabled={busyPostId === post.postId} onClick={() => decidePost(post, 'remove')}>
                                 Remover
                             </Button>
                         </div>
