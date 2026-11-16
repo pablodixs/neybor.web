@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import Map, { Layer, Marker, MapRef, Source } from 'react-map-gl/mapbox'
 
 import { PageContainer } from '@/components/page-container'
+import { MAP_STYLE_URL } from '@/lib/map-style'
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Button } from '@/components/button'
@@ -177,7 +178,7 @@ export default function MapPage() {
                         width: '100%',
                         height: '90dvh',
                     }}
-                    mapStyle="mapbox://styles/mapbox/streets-v9"
+                    mapStyle={MAP_STYLE_URL}
                 >
                     {officialAreas.features.length > 0 && (
                         <Source

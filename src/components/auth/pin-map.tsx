@@ -9,6 +9,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { MapPinIcon } from '@phosphor-icons/react'
 
 import type { LatLng } from '@/lib/geocoding'
+import { MAP_STYLE_URL } from '@/lib/map-style'
 
 /**
  * Mapa com um pino que a pessoa arrasta (ou toca no mapa) até a casa dela.
@@ -29,7 +30,7 @@ export default function PinMap({
             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
             initialViewState={{ ...point, zoom }}
             style={{ width: '100%', height: 220, borderRadius: 8 }}
-            mapStyle="mapbox://styles/mapbox/streets-v12"
+            mapStyle={MAP_STYLE_URL}
             onClick={(event: MapMouseEvent) =>
                 onChange({
                     latitude: event.lngLat.lat,

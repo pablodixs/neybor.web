@@ -5,6 +5,7 @@ import { MapPinAreaIcon, MapPinIcon } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useState } from 'react'
 
+import { MAP_STYLE_STATIC_PATH } from '@/lib/map-style'
 import { NeyborPin } from './neybor-pin'
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -81,7 +82,7 @@ export function AlertLocationMap({
     const lon = longitude!.toFixed(5)
     const lat = latitude.toFixed(5)
     const src =
-        `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/` +
+        `https://api.mapbox.com/styles/v1/${MAP_STYLE_STATIC_PATH}/static/` +
         `${lon},${lat},${zoom},0/${width}x${height}@2x` +
         `?access_token=${MAPBOX_TOKEN}`
 
