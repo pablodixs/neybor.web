@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
-import Map, { Marker, MapRef } from 'react-map-gl/mapbox'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import Map, { Layer, Marker, MapRef, Source } from 'react-map-gl/mapbox'
 
 import { PageContainer } from '@/components/page-container'
 
@@ -15,6 +15,11 @@ import { fetcherWithToken } from '@/lib/swr'
 import { Spinner } from '@/components/spinner'
 import { MapAlertResponse } from '@/interfaces/map-alert-response'
 import { ALERT_TYPE_INFO, AlertCategory } from '@/utils/mapping'
+import {
+    OFFICIAL_SEVERITY_STYLE,
+    OFFICIAL_SOURCE_LABEL,
+    OfficialAlert,
+} from '@/interfaces/official-alert'
 
 export default function MapPage() {
     const { data: session } = useSession()
@@ -46,6 +51,31 @@ export default function MapPage() {
               ]
             : null,
         fetcherWithToken,
+    )
+
+    const { data: officialAlerts = [] } = useSWR<OfficialAlert[]>(
+        userLocation && bounds
+            ? [
+                  `${process.env.NEXT_PUBLIC_API_URL}/alerts/official/map?north=${bounds.north}&east=${bounds.east}&south=${bounds.south}&west=${bounds.west}`,
+                  session?.user.token,
+              ]
+            : null,
+        fetcherWithToken,
+        { refreshInterval: 5 * 60 * 1000 },
+    )
+
+    const officialAreas = useMemo(
+        () => ({
+            type: 'FeatureCollection' as const,
+            features: officialAlerts
+                .filter((alert) => alert.geometry)
+                .map((alert) => ({
+                    type: 'Feature' as const,
+                    properties: { id: alert.id, severity: alert.severity },
+                    geometry: alert.geometry!,
+                })),
+        }),
+        [officialAlerts],
     )
 
     const updateBounds = useCallback(() => {
@@ -84,7 +114,36 @@ export default function MapPage() {
             <header className="absolute w-full p-4 text-white bg-linear-to-b from-black/50 to-black/0 z-100">
                 <h1 className="text-xl font-bold">Mapa</h1>
             </header>
-            <footer className="absolute w-full p-4 bottom-0 z-100">
+            <footer className="absolute w-full p-4 bottom-0 z-100 flex flex-col items-start gap-2">
+                {officialAlerts.length > 0 && (
+                    <ul
+                        aria-label="Alertas oficiais na área do mapa"
+                        className="max-h-40 w-full max-w-sm overflow-y-auto rounded-2xl bg-white/95 p-3 text-sm shadow-lg"
+                    >
+                        {officialAlerts.map((alert) => (
+                            <li
+                                key={alert.id}
+                                className="flex items-center gap-2 py-0.5"
+                            >
+                                <span
+                                    className="size-3 shrink-0 rounded-full"
+                                    style={{
+                                        backgroundColor:
+                                            OFFICIAL_SEVERITY_STYLE[
+                                                alert.severity
+                                            ].map,
+                                    }}
+                                />
+                                <span className="font-medium text-neutral-800">
+                                    {alert.event ?? alert.headline}
+                                </span>
+                                <span className="text-neutral-500">
+                                    {OFFICIAL_SOURCE_LABEL[alert.source]}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
                 <Button icon={GpsFixIcon} />
             </footer>
             {isLoading && <Spinner />}
@@ -108,6 +167,51 @@ export default function MapPage() {
                     }}
                     mapStyle="mapbox://styles/mapbox/streets-v9"
                 >
+                    {officialAreas.features.length > 0 && (
+                        <Source
+                            id="official-alert-areas"
+                            type="geojson"
+                            data={officialAreas}
+                        >
+                            <Layer
+                                id="official-alert-fill"
+                                type="fill"
+                                paint={{
+                                    'fill-color': [
+                                        'match',
+                                        ['get', 'severity'],
+                                        'CRITICAL',
+                                        OFFICIAL_SEVERITY_STYLE.CRITICAL.map,
+                                        'HIGH',
+                                        OFFICIAL_SEVERITY_STYLE.HIGH.map,
+                                        'MEDIUM',
+                                        OFFICIAL_SEVERITY_STYLE.MEDIUM.map,
+                                        OFFICIAL_SEVERITY_STYLE.LOW.map,
+                                    ],
+                                    'fill-opacity': 0.2,
+                                }}
+                            />
+                            <Layer
+                                id="official-alert-outline"
+                                type="line"
+                                paint={{
+                                    'line-color': [
+                                        'match',
+                                        ['get', 'severity'],
+                                        'CRITICAL',
+                                        OFFICIAL_SEVERITY_STYLE.CRITICAL.map,
+                                        'HIGH',
+                                        OFFICIAL_SEVERITY_STYLE.HIGH.map,
+                                        'MEDIUM',
+                                        OFFICIAL_SEVERITY_STYLE.MEDIUM.map,
+                                        OFFICIAL_SEVERITY_STYLE.LOW.map,
+                                    ],
+                                    'line-width': 2,
+                                }}
+                            />
+                        </Source>
+                    )}
+
                     <Marker
                         latitude={userLocation.latitude}
                         longitude={userLocation.longitude}

@@ -1,5 +1,6 @@
 'use client'
 
+import { OfficialAlertBanner } from '@/components/official-alerts/official-alert-banner'
 import { Post, PostProps } from '@/components/post'
 import { PostSkeleton } from '@/components/post/post-skeleton'
 import { fetcherWithToken } from '@/lib/swr'
@@ -26,6 +27,7 @@ export default function Feed() {
 
     return (
         <div className="w-full h-full">
+            <OfficialAlertBanner />
             {isLoading ? (
                 <div>
                     <PostSkeleton />
