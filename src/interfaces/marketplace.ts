@@ -95,3 +95,33 @@ export interface ChatMessage {
     warning: boolean
     createdAt: string
 }
+
+export interface ModerationReport {
+    reason: string
+    details: string | null
+    createdAt: string
+}
+
+export interface ModerationItem {
+    listingId: number
+    type: ListingType
+    title: string
+    description: string | null
+    category: string
+    priceCents: number | null
+    photos: ListingPhoto[]
+    author: ListingAuthor | null
+    createdAt: string
+    reports: ModerationReport[]
+}
+
+/** Post published despite the kindness reminder, waiting for an admin. */
+export interface PostModerationItem {
+    postId: number
+    content: string
+    authorId: number
+    authorHandle: string
+    authorName: string
+    createdAt: string
+    reasons: string[]
+}

@@ -10,6 +10,7 @@ import {
     ChatsCircleIcon,
     MagnifyingGlassIcon,
     PlusIcon,
+    ShieldCheckIcon,
     TagIcon,
 } from '@phosphor-icons/react'
 import { Navigation } from '@/components/navigation'
@@ -21,7 +22,7 @@ import { ListingSummary, ListingType } from '@/interfaces/marketplace'
 import { ListingCard } from '@/components/marketplace/listing-card'
 import { TYPE_LABELS } from '@/components/marketplace/labels'
 import { feiraError } from '@/components/marketplace/errors'
-import { API_URL, useListingCategories } from '@/components/marketplace/use-marketplace'
+import { API_URL, useIsAdmin, useListingCategories } from '@/components/marketplace/use-marketplace'
 
 const PAGE_SIZE = 20
 const RADII = [
@@ -37,6 +38,7 @@ function FeiraContent() {
     const params = useSearchParams()
     const { data: session } = useSession()
     const { categories, labels } = useListingCategories()
+    const isAdmin = useIsAdmin()
 
     const type = params.get('tipo') as ListingType | null
     const category = params.get('categoria')
@@ -87,6 +89,13 @@ function FeiraContent() {
                         Meus anúncios
                     </Button>
                 </Link>
+                {isAdmin && (
+                    <Link href="/feira/moderacao">
+                        <Button variant="bordered" icon={ShieldCheckIcon} iconPlacement="leading" size="sm">
+                            Moderação
+                        </Button>
+                    </Link>
+                )}
                 <Link href="/feira/conversas">
                     <Button variant="bordered" icon={ChatsCircleIcon} iconPlacement="leading" size="sm">
                         Conversas
