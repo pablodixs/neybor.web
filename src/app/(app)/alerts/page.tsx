@@ -22,6 +22,7 @@ import { Navigation } from '@/components/navigation'
 import { ALERT_CATEGORIES } from '@/components/post/alert-category-picker'
 import { useCompose } from '@/components/post/compose-context'
 import { OfficialAlertBanner } from '@/components/official-alerts/official-alert-banner'
+import { useOfficialAlerts } from '@/hooks/use-official-alerts'
 import { PushOptIn } from '@/components/pwa/push-opt-in'
 import { Spinner } from '@/components/spinner'
 import {
@@ -38,6 +39,7 @@ export default function AlertsPage() {
     const { data: session } = useSession()
     const { openCompose } = useCompose()
     const token = session?.user?.token
+    const { alerts: officialAlerts } = useOfficialAlerts()
 
     const key = token ? [`${API_URL}/alerts/nearby`, token] : null
     const {
@@ -114,7 +116,7 @@ export default function AlertsPage() {
                 />
             )}
 
-            {alerts && alerts.length === 0 && (
+            {alerts && alerts.length === 0 && officialAlerts.length === 0 && (
                 <EmptyState
                     icon
                     title="Tudo tranquilo por aqui"

@@ -70,7 +70,11 @@ function OfficialAlertCard({
     const [open, setOpen] = useState(false)
     const style = OFFICIAL_SEVERITY_STYLE[alert.severity]
     const title = alert.event ?? alert.headline ?? 'Alerta oficial'
-    const hasDetails = alert.description || alert.instruction
+    const hasDetails =
+        alert.description ||
+        alert.instruction ||
+        alert.areaDesc ||
+        alert.webUrl
 
     return (
         <article className={`rounded-2xl border p-3 ${style.box}`}>
