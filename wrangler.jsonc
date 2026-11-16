@@ -20,6 +20,12 @@
         // https://opennext.js.org/cloudflare/howtos/image
         "binding": "IMAGES"
     },
+    "previews": {
+        // exigido pelo `wrangler preview` (build de branches no Workers Builds)
+        "images": {
+            "binding": "IMAGES"
+        }
+    },
     "observability": {
         "enabled": true
     },
