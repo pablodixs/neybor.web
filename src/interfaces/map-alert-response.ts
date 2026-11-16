@@ -5,6 +5,7 @@ export interface MapAlertResponse {
     postContent: string
     latitude: number
     longitude: number
+    locationApproximate?: boolean
     collaborative: boolean
     severity: string
     status: string
