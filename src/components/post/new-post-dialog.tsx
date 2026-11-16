@@ -29,7 +29,6 @@ import { Button } from '../button'
 import axios from 'axios'
 import { Tooltip } from '../tooltip'
 import { friendlyApiError } from '@/lib/api-error'
-import { isFeatureEnabled } from '@/lib/features'
 import { AlertCategoryKey, AlertCategoryPicker } from './alert-category-picker'
 import { RecomendationsLabel } from './post-type-labels/recomendations-label'
 
@@ -426,9 +425,9 @@ const POST_TYPE_OPTIONS = [
     },
 ]
 
+// Anúncios da Feira do Bairro têm fluxo próprio (/feira/novo); não viram post do feed.
 const VISIBLE_POST_TYPE_OPTIONS = POST_TYPE_OPTIONS.filter(
-    (option) =>
-        option.type !== PostType.MARKETPLACE || isFeatureEnabled('marketplace'),
+    (option) => option.type !== PostType.MARKETPLACE,
 )
 
 const PostTypeOptions = ({

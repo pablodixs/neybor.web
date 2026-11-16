@@ -4,10 +4,10 @@
  * Para reativar uma seção, troque o valor para `true`.
  */
 export const FEATURES = {
-    marketplace: false,
+    marketplace: true,
     groups: false,
     events: false,
-    messages: false,
+    messages: true,
     notifications: false,
 } as const
 

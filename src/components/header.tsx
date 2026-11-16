@@ -23,7 +23,7 @@ const NAV_ITEMS: {
     { href: '/alerts', label: 'Alertas', icon: SirenIcon, enabled: true },
     { href: '/map', label: 'Mapa', icon: MapTrifoldIcon, enabled: true },
     {
-        href: '/messages',
+        href: '/feira/conversas',
         label: 'Mensagens',
         icon: ChatsCircleIcon,
         enabled: isFeatureEnabled('messages'),

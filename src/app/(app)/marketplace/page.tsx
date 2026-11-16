@@ -1,9 +1,6 @@
-import { Navigation } from '@/components/navigation'
+import { redirect } from 'next/navigation'
 
+// A Feira do Bairro substituiu a antiga tela vazia do marketplace.
 export default function MarketplacePage() {
-    return (
-        <div className="p-4 border border-neutral-100 rounded-2xl bg-white">
-            <Navigation title="Marketplace" showBackButton={false} />
-        </div>
-    )
+    redirect('/feira')
 }
