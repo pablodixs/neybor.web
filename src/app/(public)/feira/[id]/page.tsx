@@ -9,6 +9,7 @@ import axios from 'axios'
 import { formatDistanceToNowStrict } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ChatCircleIcon, FlagIcon, SealCheckIcon, ShieldCheckIcon } from '@phosphor-icons/react'
+import { PublicListing } from '@/components/marketplace/guest/public-listing'
 import { Navigation } from '@/components/navigation'
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/button'
@@ -27,7 +28,7 @@ import {
 import { authHeaders, feiraError } from '@/components/marketplace/errors'
 import { API_URL, useListingCategories } from '@/components/marketplace/use-marketplace'
 
-export default function ListingPage({ params }: { params: Promise<{ id: string }> }) {
+function MemberListingPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params)
     const router = useRouter()
     const { data: session } = useSession()
@@ -334,5 +335,14 @@ export default function ListingPage({ params }: { params: Promise<{ id: string }
                 </div>
             )}
         </div>
+    )
+}
+
+export default function ListingPage({ params }: { params: Promise<{ id: string }> }) {
+    const { status } = useSession()
+    return status === 'authenticated' ? (
+        <MemberListingPage params={params} />
+    ) : (
+        <PublicListing params={params} />
     )
 }

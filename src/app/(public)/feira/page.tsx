@@ -13,6 +13,7 @@ import {
     ShieldCheckIcon,
     TagIcon,
 } from '@phosphor-icons/react'
+import { PublicFeira } from '@/components/marketplace/guest/public-feira'
 import { Navigation } from '@/components/navigation'
 import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/button'
@@ -214,9 +215,10 @@ function FeiraContent() {
 }
 
 export default function FeiraPage() {
+    const { status } = useSession()
     return (
         <Suspense>
-            <FeiraContent />
+            {status === 'authenticated' ? <FeiraContent /> : <PublicFeira />}
         </Suspense>
     )
 }

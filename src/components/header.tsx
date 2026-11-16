@@ -36,7 +36,7 @@ const NAV_ITEMS: {
     },
 ]
 
-function Logo() {
+export function Logo() {
     return (
         <svg
             width="27"
