@@ -212,7 +212,12 @@ export function NewPostDialog({
                     </button>
                 </header>
                 {currentStep === 'draft' && (
-                    <>
+                    <fieldset
+                        disabled={isCheckingKindness}
+                        className="contents"
+                    >
+                        {/* trava o rascunho enquanto a checagem de gentileza
+                        roda, para o resultado valer para o texto publicado */}
                         <section className="py-4">
                             <div className="flex gap-2 items-center">
                                 <Image
@@ -340,7 +345,7 @@ export function NewPostDialog({
                                 </Button>
                             </div>
                         </section>
-                    </>
+                    </fieldset>
                 )}
                 {currentStep === 'kindness' && kindnessCheck && (
                     <KindnessReminder
