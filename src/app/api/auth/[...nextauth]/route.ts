@@ -236,6 +236,55 @@ async function revokeRefreshToken() {
     }
 }
 
+/**
+ * Códigos de erro do cadastro. O NextAuth repassa a mensagem do erro lançado em
+ * `authorize` para `signIn(...).error`, e a tela de cadastro (auth/signin) traduz o código.
+ */
+const REGISTER_ERRORS = {
+    emailInUse: 'EMAIL_IN_USE',
+    invalidFields: 'INVALID_FIELDS',
+    unavailable: 'REGISTER_UNAVAILABLE',
+} as const
+
+async function authenticateWithBackend(
+    path: '/auth/login' | '/auth/register',
+    body: Record<string, string | undefined>,
+    headers: RequestHeaders,
+) {
+    const sessionInfo = getSessionInfo(headers)
+
+    const response = await fetch(`${API_URL}${path}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...getSessionInfoHeaders(sessionInfo),
+        },
+        body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+        console.error(`${path} failed:`, response.status, response.statusText)
+        return { status: response.status, user: null }
+    }
+
+    const user = (await response.json()) as BackendAuthResponse
+    await saveRefreshTokenCookie(response)
+
+    return {
+        status: response.status,
+        user: {
+            id: String(user.profileId),
+            profileId: user.profileId,
+            token: user.accessToken,
+            type: user.tokenType,
+            avatarUrl: user.avatarUrl,
+            displayName: user.displayName,
+            accessTokenExpires: getAccessTokenExpiration(user.accessToken),
+            sessionInfo,
+        },
+    }
+}
+
 export const authOptions: AuthOptions = {
     providers: [
         Credentials({
@@ -246,56 +295,55 @@ export const authOptions: AuthOptions = {
             },
             async authorize(credentials, request) {
                 try {
-                    const sessionInfo = getSessionInfo(request.headers || {})
-
-                    console.log('Attempting login to:', `${API_URL}/auth/login`)
-                    const response = await fetch(`${API_URL}/auth/login`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            ...getSessionInfoHeaders(sessionInfo),
-                        },
-                        body: JSON.stringify({
+                    const { user } = await authenticateWithBackend(
+                        '/auth/login',
+                        {
                             email: credentials?.username,
                             password: credentials?.password,
-                        }),
-                    })
-
-                    const text = await response.text()
-
-                    if (!response.ok) {
-                        console.error(
-                            'Login failed:',
-                            response.status,
-                            response.statusText,
-                        )
-                        return null
-                    }
-
-                    const user = JSON.parse(text) as BackendAuthResponse
-
-                    if (user) {
-                        await saveRefreshTokenCookie(response)
-
-                        return {
-                            id: String(user.profileId),
-                            profileId: user.profileId,
-                            token: user.accessToken,
-                            type: user.tokenType,
-                            avatarUrl: user.avatarUrl,
-                            displayName: user.displayName,
-                            accessTokenExpires: getAccessTokenExpiration(
-                                user.accessToken,
-                            ),
-                            sessionInfo,
-                        }
-                    } else {
-                        return null
-                    }
+                        },
+                        request.headers || {},
+                    )
+                    return user
                 } catch (error) {
                     console.error('Auth error:', error)
                     return null
                 }
+            },
+        }),
+        Credentials({
+            // cadastro: cria a conta no backend e já deixa o vizinho logado
+            id: 'register',
+            name: 'Register',
+            credentials: {
+                name: { label: 'Name', type: 'text' },
+                email: { label: 'Email', type: 'email' },
+                password: { label: 'Password', type: 'password' },
+            },
+            async authorize(credentials, request) {
+                let result: Awaited<ReturnType<typeof authenticateWithBackend>>
+                try {
+                    result = await authenticateWithBackend(
+                        '/auth/register',
+                        {
+                            name: credentials?.name,
+                            email: credentials?.email,
+                            password: credentials?.password,
+                        },
+                        request.headers || {},
+                    )
+                } catch (error) {
+                    console.error('Register error:', error)
+                    throw new Error(REGISTER_ERRORS.unavailable)
+                }
+
+                if (result.user) return result.user
+                if (result.status === 409) {
+                    throw new Error(REGISTER_ERRORS.emailInUse)
+                }
+                if (result.status === 400) {
+                    throw new Error(REGISTER_ERRORS.invalidFields)
+                }
+                throw new Error(REGISTER_ERRORS.unavailable)
             },
         }),
     ],

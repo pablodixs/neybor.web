@@ -63,7 +63,7 @@ function LoginForm() {
     }
 
     return (
-        <section className="max-w-[500px] w-full bg-white rounded-xl p-8">
+        <section className="max-w-[500px] w-full bg-white rounded-xl p-6 sm:p-8">
             <svg
                 width="27"
                 height="32"
@@ -135,10 +135,15 @@ function LoginForm() {
                     Entrar
                 </Button>
             </form>
-            <div className="flex gap-8 justify-center mt-8">
-                <Button variant="secondary">Continuar com o Google</Button>
-                <Button variant="secondary">Continuar com a Apple</Button>
-            </div>
+            <p className="text-neutral-500 text-center mt-8">
+                Novo por aqui?{' '}
+                <Link
+                    className="text-green-600 font-semibold"
+                    href="/auth/signin"
+                >
+                    Criar conta
+                </Link>
+            </p>
         </section>
     )
 }
