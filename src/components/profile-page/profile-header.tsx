@@ -8,6 +8,7 @@ import {
 } from '@phosphor-icons/react'
 import Image from 'next/image'
 import { Button } from '../button'
+import { FounderBadge } from '../invites/founder-badge'
 import { formatDate } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -91,6 +92,7 @@ export function ProfileHeader({ user, currentUserId }: ProfileHeaderProps) {
                     </div>
                 </section>
                 <section className="py-4">
+                    <FounderBadge profileId={user.id} />
                     <p>{user.bio}</p>
                     <div className="mt-4 flex gap-4">
                         <span className="flex gap-1 items-center font-semibold text-green-800">
