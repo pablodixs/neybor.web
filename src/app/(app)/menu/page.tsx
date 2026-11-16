@@ -8,6 +8,7 @@ import {
     GearSixIcon,
     Icon,
     UserIcon,
+    UserPlusIcon,
     UsersThreeIcon,
     WrenchIcon,
 } from '@phosphor-icons/react'
@@ -44,6 +45,12 @@ export default function MenuPage() {
             href: '/servicos',
             label: 'Serviços',
             icon: WrenchIcon,
+            enabled: true,
+        },
+        {
+            href: '/convidar',
+            label: 'Convidar vizinhos',
+            icon: UserPlusIcon,
             enabled: true,
         },
         {

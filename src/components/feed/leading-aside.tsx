@@ -6,6 +6,7 @@ import {
     Icon,
     PencilSimpleLineIcon,
     UserIcon,
+    UserPlusIcon,
     WrenchIcon,
     UsersThreeIcon,
 } from '@phosphor-icons/react'
@@ -68,6 +69,12 @@ export function LeadingAside() {
             label: 'Meu perfil',
             icon: UserIcon,
             enabled: profileHref !== null,
+        },
+        {
+            href: '/convidar',
+            label: 'Convidar vizinhos',
+            icon: UserPlusIcon,
+            enabled: true,
         },
         {
             href: '/bookmarks',
