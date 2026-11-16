@@ -14,7 +14,7 @@ import { UserLocation } from '@/components/feed/my-neighborhood-alerts'
 import { fetcherWithToken } from '@/lib/swr'
 import { Spinner } from '@/components/spinner'
 import { MapAlertResponse } from '@/interfaces/map-alert-response'
-import { ALERT_TYPE_INFO, AlertCategory } from '@/utils/mapping'
+import { ALERT_CATEGORIES } from '@/components/post/alert-category-picker'
 import {
     OFFICIAL_SEVERITY_STYLE,
     OFFICIAL_SOURCE_LABEL,
@@ -42,6 +42,18 @@ export default function MapPage() {
     } | null>(null)
 
     const mapRef = useRef<MapRef>(null)
+
+    // ?lat=&lng= vem do mapa pequeno dos alertas: abre centrado no alerta
+    const [focus] = useState(() => {
+        if (typeof window === 'undefined') return null
+        const params = new URLSearchParams(window.location.search)
+        const latitude = Number(params.get('lat'))
+        const longitude = Number(params.get('lng'))
+        if (!params.get('lat') || !params.get('lng')) return null
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude))
+            return null
+        return { latitude, longitude }
+    })
 
     const { data: alerts = [] } = useSWR<MapAlertResponse[]>(
         userLocation && bounds
@@ -156,9 +168,9 @@ export default function MapPage() {
                     onLoad={updateBounds}
                     onMoveEnd={updateBounds}
                     initialViewState={{
-                        longitude: userLocation.longitude,
-                        latitude: userLocation.latitude,
-                        zoom: 14,
+                        longitude: focus?.longitude ?? userLocation.longitude,
+                        latitude: focus?.latitude ?? userLocation.latitude,
+                        zoom: focus ? 15 : 14,
                     }}
                     style={{
                         zIndex: 0,
@@ -218,9 +230,12 @@ export default function MapPage() {
                     />
 
                     {alerts?.map((alert) => {
-                        const category = alert.category as AlertCategory
-                        if (!ALERT_TYPE_INFO[category]) return null
-                        const Icon = ALERT_TYPE_INFO[category].icon
+                        // a API manda a categoria como texto ("SECURITY")
+                        const info = ALERT_CATEGORIES.find(
+                            (item) => item.key === String(alert.category),
+                        )
+                        if (!info) return null
+                        const Icon = info.icon
 
                         return (
                             <Marker
@@ -230,7 +245,7 @@ export default function MapPage() {
                                 style={{ zIndex: 20 }}
                             >
                                 <span
-                                    className={`p-2 rounded-full ${ALERT_TYPE_INFO[category].color} shadow-lg`}
+                                    className={`flex p-2 rounded-full text-white ${info.color} shadow-lg`}
                                 >
                                     <Icon size={24} />
                                 </span>

@@ -17,6 +17,7 @@ import { ptBR } from 'date-fns/locale'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
+import { AlertLocationMap } from '@/components/map/alert-location-map'
 import { PostMenu } from './post-menu'
 
 export interface Author {
@@ -36,9 +37,12 @@ export interface PostProps {
     author: Author
     content: string
     createdAt: string
-    latitude: number
-    longitude: number
-    type: 'GENERAL' | 'EVENT' | 'ALERT'
+    /** Ausentes quando o post não tem local. */
+    latitude?: number | null
+    longitude?: number | null
+    /** true quando o local é só a região (veio do endereço do autor). */
+    locationApproximate?: boolean
+    type: 'GENERAL' | 'SAFETY_ALERT' | 'MARKETPLACE' | 'RECOMMENDATION' | string
     visibility: 'NEIGHBORHOOD' | 'PUBLIC' | 'PRIVATE'
     likedByMe: boolean
     myReactionType: string
@@ -156,6 +160,14 @@ export function Post({
                 <Link href={`/${data.author.handle}/post/${data.id}`}>
                     <p>{data.content}</p>
                 </Link>
+                {data.type === 'SAFETY_ALERT' && (
+                    <AlertLocationMap
+                        className="mt-3"
+                        latitude={data.latitude}
+                        longitude={data.longitude}
+                        approximate={data.locationApproximate}
+                    />
+                )}
             </section>
             <footer className="pl-11 flex gap-4 text-neutral-500 items-center -m-2">
                 <button

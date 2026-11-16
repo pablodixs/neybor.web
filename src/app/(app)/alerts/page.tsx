@@ -18,6 +18,7 @@ import { useState } from 'react'
 import useSWR from 'swr'
 
 import { Button } from '@/components/button'
+import { AlertLocationMap } from '@/components/map/alert-location-map'
 import { Navigation } from '@/components/navigation'
 import { ALERT_CATEGORIES } from '@/components/post/alert-category-picker'
 import { useCompose } from '@/components/post/compose-context'
@@ -182,10 +183,15 @@ function SeverityBadge({ severity }: { severity: AlertSeverity }) {
     )
 }
 
-function CategoryBadge({ category }: { category: string }) {
-    const info =
+function categoryInfo(category: string) {
+    return (
         ALERT_CATEGORIES.find((item) => item.key === category) ??
         ALERT_CATEGORIES[ALERT_CATEGORIES.length - 1]
+    )
+}
+
+function CategoryBadge({ category }: { category: string }) {
+    const info = categoryInfo(category)
     const CategoryIcon = info.icon
 
     return (
@@ -278,6 +284,14 @@ function AlertCard({
             {createdAgo && (
                 <p className="text-sm text-neutral-500 mt-1">{createdAgo}</p>
             )}
+
+            <AlertLocationMap
+                className="mt-3"
+                latitude={alert.latitude}
+                longitude={alert.longitude}
+                approximate={alert.locationApproximate}
+                categoryIcon={categoryInfo(String(alert.category)).icon}
+            />
 
             {errorMessage && (
                 <p

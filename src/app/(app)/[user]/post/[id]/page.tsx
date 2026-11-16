@@ -30,6 +30,7 @@ import { CommentResponse } from '@/interfaces/post/comment'
 import { Comment } from '@/components/post/comment'
 import axios from 'axios'
 import { PostMenu } from '@/components/post/post-menu'
+import { AlertLocationMap } from '@/components/map/alert-location-map'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
@@ -226,6 +227,15 @@ const PostContent = ({
                     </div>
                 </header>
                 <p className="font-medium text-xl my-4">{post.content}</p>
+                {post.type === 'SAFETY_ALERT' && (
+                    <AlertLocationMap
+                        variant="detail"
+                        className="mb-4"
+                        latitude={post.latitude}
+                        longitude={post.longitude}
+                        approximate={post.locationApproximate}
+                    />
+                )}
                 <footer>
                     <section className="flex items-center gap-4 -ml-2">
                         <button
