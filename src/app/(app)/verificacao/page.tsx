@@ -25,7 +25,7 @@ function currentPosition() {
 }
 
 function checkinError(error: unknown) {
-    if (error instanceof GeolocationPositionError) {
+    if (typeof GeolocationPositionError !== 'undefined' && error instanceof GeolocationPositionError) {
         return 'Não consegui ver sua localização. Permita o acesso à localização do navegador e tente de novo.'
     }
     if (axios.isAxiosError(error) && error.response?.status === 409) {
