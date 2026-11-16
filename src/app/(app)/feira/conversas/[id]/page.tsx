@@ -80,14 +80,15 @@ function Chat({ id }: { id: string }) {
         setSending(true)
         setError(null)
         try {
-            const { data } = await axios.post<ChatMessage>(
+            await axios.post<ChatMessage>(
                 `${API_URL}/conversations/${id}/messages`,
                 { body },
                 authHeaders(token),
             )
-            lastId.current = Math.max(lastId.current, data.id)
-            setMessages((current) => (current.some((m) => m.id === data.id) ? current : [...current, data]))
             setText('')
+            // Fetch from the cursor instead of appending locally: a message from the other
+            // person that arrived meanwhile has a lower id and must not be skipped or misordered.
+            await poll()
         } catch (e) {
             setError(feiraError(e, 'Não foi possível enviar a mensagem.', 'chat'))
         } finally {
