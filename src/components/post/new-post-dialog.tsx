@@ -32,6 +32,11 @@ import { friendlyApiError } from '@/lib/api-error'
 import { isFeatureEnabled } from '@/lib/features'
 import { AlertCategoryKey, AlertCategoryPicker } from './alert-category-picker'
 import { RecomendationsLabel } from './post-type-labels/recomendations-label'
+import {
+    checkKindness,
+    KindnessCheck,
+    KindnessReminder,
+} from './kindness-reminder'
 
 export type ComposeType = 'GENERAL' | 'SAFETY_ALERT'
 
@@ -80,6 +85,14 @@ export function NewPostDialog({
 
     const [isPostSending, setIsPostSending] = useState(false)
     const [currentStep, setCurrentStep] = useState('draft')
+    const [kindnessCheck, setKindnessCheck] = useState<KindnessCheck | null>(
+        null,
+    )
+    const [isCheckingKindness, setIsCheckingKindness] = useState(false)
+    // texto que a pessoa decidiu publicar mesmo após o lembrete
+    const [acknowledgedContent, setAcknowledgedContent] = useState<
+        string | null
+    >(null)
 
     const { data } = useSession()
 
@@ -110,6 +123,22 @@ export function NewPostDialog({
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
         )
+    }
+
+    async function handleNext() {
+        if (acknowledgedContent === postContent) {
+            setCurrentStep('post-visibility')
+            return
+        }
+        setIsCheckingKindness(true)
+        const check = await checkKindness(postContent, data?.user.token)
+        setIsCheckingKindness(false)
+        if (check?.flagged) {
+            setKindnessCheck(check)
+            setCurrentStep('kindness')
+            return
+        }
+        setCurrentStep('post-visibility')
     }
 
     function handleSendPost() {
@@ -304,15 +333,24 @@ export function NewPostDialog({
                                         postContent.length > 300 ||
                                         (isAlert && !alertCategory)
                                     }
-                                    onClick={() =>
-                                        setCurrentStep('post-visibility')
-                                    }
+                                    activityIndicator={isCheckingKindness}
+                                    onClick={handleNext}
                                 >
                                     Próximo
                                 </Button>
                             </div>
                         </section>
                     </>
+                )}
+                {currentStep === 'kindness' && kindnessCheck && (
+                    <KindnessReminder
+                        check={kindnessCheck}
+                        onEdit={() => setCurrentStep('draft')}
+                        onPublishAnyway={() => {
+                            setAcknowledgedContent(postContent)
+                            setCurrentStep('post-visibility')
+                        }}
+                    />
                 )}
                 {currentStep === 'post-visibility' && (
                     <div className="flex flex-col items-center justify-center pt-8">
