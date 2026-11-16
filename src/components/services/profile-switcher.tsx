@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import useSWR from 'swr'
 import axios from 'axios'
@@ -16,6 +17,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 /** Lists the account's profiles and lets the user act as another one. Hidden with a single profile. */
 export function ProfileSwitcher() {
+    const router = useRouter()
     const { data: session, update } = useSession()
     const [busy, setBusy] = useState(false)
     const { data: profiles, mutate } = useSWR<AccountProfile[]>(
@@ -36,7 +38,8 @@ export function ProfileSwitcher() {
             )
             await update({ switchedProfile: data })
             await mutate()
-            window.location.assign('/feed')
+            router.push('/feed')
+            router.refresh()
         } finally {
             setBusy(false)
         }
