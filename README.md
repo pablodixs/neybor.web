@@ -140,10 +140,13 @@ Preparação (uma vez):
 
 ```bash
 npx wrangler login
-npx wrangler r2 bucket create neybor-web-opennext-cache
 npx wrangler secret put NEXTAUTH_SECRET
 npx wrangler secret put NEXTAUTH_URL   # ex.: https://neybor.example.com
 ```
+
+Não há cache incremental (R2): o app não usa ISR. Se precisar, crie um bucket R2 e use o `r2-incremental-cache` em `open-next.config.ts`.
+
+No Workers Builds, use como comando de build `npx opennextjs-cloudflare build` e de deploy `npx opennextjs-cloudflare deploy`.
 
 As variáveis `NEXT_PUBLIC_*` são embutidas no JavaScript durante o build, então precisam existir no ambiente de quem roda `npm run deploy` (no `.env.local`, no CI ou nas variáveis de build do Workers Builds).
 
