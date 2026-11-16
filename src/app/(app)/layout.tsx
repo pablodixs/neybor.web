@@ -1,10 +1,6 @@
 'use client'
 
-import { FeedLayout } from '@/components/feed/feed-layout'
-import { Header } from '@/components/header'
-import { BottomNav } from '@/components/layout/bottom-nav'
-import { ComposeProvider } from '@/components/post/compose-context'
-import { InstallBanner } from '@/components/pwa/install-banner'
+import { AppShell } from '@/components/layout/app-shell'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { ReactNode } from 'react'
@@ -19,12 +15,5 @@ export default function Layout({ children }: { children: ReactNode }) {
         },
     })
 
-    return (
-        <ComposeProvider>
-            <Header />
-            <FeedLayout>{children}</FeedLayout>
-            <InstallBanner variant="floating" />
-            <BottomNav />
-        </ComposeProvider>
-    )
+    return <AppShell>{children}</AppShell>
 }

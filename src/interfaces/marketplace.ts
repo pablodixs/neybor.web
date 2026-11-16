@@ -152,3 +152,42 @@ export interface SavedPlace {
     dayStartHour: number
     dayEndHour: number
 }
+
+/** What the open (no login) API returns: no distance, no author id or handle. */
+export interface PublicListingSummary {
+    id: number
+    type: ListingType
+    status: ListingStatus
+    title: string
+    category: string
+    priceCents: number | null
+    thumbUrl: string | null
+    neighborhood: string | null
+    city: string | null
+    createdAt: string
+    authorName: string | null
+    authorVerified: boolean
+}
+
+export interface PublicListingDetails {
+    id: number
+    type: ListingType
+    status: ListingStatus
+    title: string
+    description: string | null
+    category: string
+    condition: string | null
+    priceCents: number | null
+    acceptsOffers: boolean
+    pickupOption: string
+    photos: ListingPhoto[]
+    neighborhood: string | null
+    city: string | null
+    createdAt: string
+    expiresAt: string
+    authorName: string | null
+    authorAvatarUrl: string | null
+    authorVerified: boolean
+    authorMemberSince: string | null
+    authorCompletedCount: number | null
+}
