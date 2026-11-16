@@ -125,3 +125,30 @@ export interface PostModerationItem {
     createdAt: string
     reasons: string[]
 }
+
+export interface PresenceStatus {
+    verified: boolean
+    nightsCounted: number
+    nightsRequired: number
+    windowDays: number
+    nights: string[]
+    nightStartHour: number
+    nightEndHour: number
+    radiusMeters: number
+    hasAddress: boolean
+}
+
+export type PlaceKind = 'WORK' | 'OTHER'
+
+export interface SavedPlace {
+    id: number
+    kind: PlaceKind
+    label: string
+    verified: boolean
+    daysCounted: number
+    daysRequired: number
+    windowDays: number
+    days: string[]
+    dayStartHour: number
+    dayEndHour: number
+}
