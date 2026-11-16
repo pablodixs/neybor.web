@@ -8,7 +8,13 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     onButtonClick?: () => void
 }
 
-export function Input({ fullWidth, button, icon: Icon, ...props }: InputProps) {
+export function Input({
+    fullWidth,
+    button,
+    icon: Icon,
+    onButtonClick,
+    ...props
+}: InputProps) {
     return (
         <div className="relative">
             <input
@@ -25,7 +31,7 @@ export function Input({ fullWidth, button, icon: Icon, ...props }: InputProps) {
             {button && (
                 <button
                     type="reset"
-                    onClick={props.onButtonClick}
+                    onClick={onButtonClick}
                     className="cursor-pointer text-neutral-600 aspect-square absolute right-2 top-1/2 -translate-y-1/2 transition hover:bg-neutral-100 p-2 rounded-full"
                 >
                     {button}
