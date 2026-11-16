@@ -137,3 +137,18 @@ export interface PresenceStatus {
     radiusMeters: number
     hasAddress: boolean
 }
+
+export type PlaceKind = 'WORK' | 'OTHER'
+
+export interface SavedPlace {
+    id: number
+    kind: PlaceKind
+    label: string
+    verified: boolean
+    daysCounted: number
+    daysRequired: number
+    windowDays: number
+    days: string[]
+    dayStartHour: number
+    dayEndHour: number
+}

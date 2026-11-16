@@ -230,6 +230,9 @@ export default function VerificationPage() {
 
             {message && <p className="text-green-700 text-sm">{message}</p>}
             {error && <p className="text-red-600 text-sm">{error}</p>}
+            <Link href="/lugares" className="text-sm underline text-center">
+                Adicionar outros lugares, como o trabalho
+            </Link>
         </div>
     )
 }
