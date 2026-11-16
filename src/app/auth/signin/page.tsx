@@ -158,12 +158,13 @@ export default function SignUpPage() {
     async function createAccount() {
         goTo(STEPS.creating)
 
+        // signIn rejeita (em vez de devolver error) quando a rede cai no meio
         const result = await signIn('register', {
             redirect: false,
             name: fullName,
             email: userInfo.email.trim(),
             password: userInfo.password,
-        })
+        }).catch(() => null)
 
         if (!result || result.error) {
             const code = result?.error || 'REGISTER_UNAVAILABLE'
