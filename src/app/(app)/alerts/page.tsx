@@ -21,6 +21,7 @@ import { Button } from '@/components/button'
 import { Navigation } from '@/components/navigation'
 import { ALERT_CATEGORIES } from '@/components/post/alert-category-picker'
 import { useCompose } from '@/components/post/compose-context'
+import { OfficialAlertBanner } from '@/components/official-alerts/official-alert-banner'
 import { PushOptIn } from '@/components/pwa/push-opt-in'
 import { Spinner } from '@/components/spinner'
 import {
@@ -78,6 +79,8 @@ export default function AlertsPage() {
             </div>
 
             <PushOptIn />
+
+            <OfficialAlertBanner />
 
             {isLoading && <Spinner />}
 
