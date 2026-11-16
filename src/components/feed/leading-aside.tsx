@@ -6,6 +6,7 @@ import {
     Icon,
     PencilSimpleLineIcon,
     UserIcon,
+    WrenchIcon,
     UsersThreeIcon,
 } from '@phosphor-icons/react'
 import Image from 'next/image'
@@ -13,6 +14,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 
+import { ProfileSwitcher } from '../services/profile-switcher'
 import { useMyProfileHref } from '@/hooks/use-my-profile-href'
 import { isFeatureEnabled } from '@/lib/features'
 
@@ -56,6 +58,12 @@ export function LeadingAside() {
             enabled: isFeatureEnabled('events'),
         },
         {
+            href: '/servicos',
+            label: 'Serviços',
+            icon: WrenchIcon,
+            enabled: true,
+        },
+        {
             href: profileHref ?? '/menu',
             label: 'Meu perfil',
             icon: UserIcon,
@@ -95,11 +103,15 @@ export function LeadingAside() {
                         {data.user.displayName}
                     </strong>
                 </Link>
+                <ProfileSwitcher />
                 <nav className="mt-4 flex flex-col gap-2">
                     {links
                         .filter((link) => link.enabled)
                         .map(({ href, label, icon: LinkIcon }) => {
-                            const active = path === href
+                            const active =
+                                href === '/servicos'
+                                    ? path.startsWith(href)
+                                    : path === href
                             return (
                                 <Link
                                     key={href}

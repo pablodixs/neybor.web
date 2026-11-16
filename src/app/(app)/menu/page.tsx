@@ -9,12 +9,14 @@ import {
     Icon,
     UserIcon,
     UsersThreeIcon,
+    WrenchIcon,
 } from '@phosphor-icons/react'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 
 import { Navigation } from '@/components/navigation'
+import { ProfileSwitcher } from '@/components/services/profile-switcher'
 import { useMyProfileHref } from '@/hooks/use-my-profile-href'
 import { isFeatureEnabled } from '@/lib/features'
 
@@ -37,6 +39,12 @@ export default function MenuPage() {
             label: 'Meu perfil',
             icon: UserIcon,
             enabled: profileHref !== null,
+        },
+        {
+            href: '/servicos',
+            label: 'Serviços',
+            icon: WrenchIcon,
+            enabled: true,
         },
         {
             href: '/bookmarks',
@@ -89,7 +97,8 @@ export default function MenuPage() {
                     </strong>
                 </div>
             )}
-            <nav className="flex flex-col">
+            <ProfileSwitcher />
+            <nav className="flex flex-col mt-2">
                 {links
                     .filter((link) => link.enabled)
                     .map(({ href, label, icon: LinkIcon }) => (
