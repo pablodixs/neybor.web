@@ -167,7 +167,10 @@ function FeiraContent() {
 
             {forbidden && (
                 <p className="p-4 rounded-2xl bg-orange-50 text-orange-800 text-sm">
-                    {feiraError(error, '')} Se você tem mais de um perfil, troque para o pessoal.
+                    {feiraError(error, '')} Se você tem mais de um perfil, troque para o pessoal.{' '}
+                    <Link href="/verificacao" className="underline font-semibold">
+                        Verificar meu endereço
+                    </Link>
                 </p>
             )}
 

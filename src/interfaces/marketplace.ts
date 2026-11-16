@@ -125,3 +125,15 @@ export interface PostModerationItem {
     createdAt: string
     reasons: string[]
 }
+
+export interface PresenceStatus {
+    verified: boolean
+    nightsCounted: number
+    nightsRequired: number
+    windowDays: number
+    nights: string[]
+    nightStartHour: number
+    nightEndHour: number
+    radiusMeters: number
+    hasAddress: boolean
+}
