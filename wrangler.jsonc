@@ -15,17 +15,16 @@
             "service": "neybor-web"
         }
     ],
-    "r2_buckets": [
-        {
-            // crie uma vez com: npx wrangler r2 bucket create neybor-web-opennext-cache
-            "binding": "NEXT_INC_CACHE_R2_BUCKET",
-            "bucket_name": "neybor-web-opennext-cache"
-        }
-    ],
     "images": {
         // otimização do next/image pelo Cloudflare Images (avatares do S3)
         // https://opennext.js.org/cloudflare/howtos/image
         "binding": "IMAGES"
+    },
+    "previews": {
+        // exigido pelo `wrangler preview` (build de branches no Workers Builds)
+        "images": {
+            "binding": "IMAGES"
+        }
     },
     "observability": {
         "enabled": true
