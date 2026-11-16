@@ -1,9 +1,7 @@
 import { defineCloudflareConfig } from '@opennextjs/cloudflare'
-import r2IncrementalCache from '@opennextjs/cloudflare/overrides/incremental-cache/r2-incremental-cache'
 
-// Cache do Next (páginas pré-renderizadas e route cache) guardado no R2.
-// O bucket é preenchido automaticamente pelo `npm run deploy`.
+// Sem cache incremental: o app não usa ISR/revalidate (páginas dinâmicas são
+// renderizadas a cada request e as estáticas já vão como assets). Se um dia
+// precisar de ISR, habilite o R2 e use o r2-incremental-cache:
 // https://opennext.js.org/cloudflare/caching
-export default defineCloudflareConfig({
-    incrementalCache: r2IncrementalCache,
-})
+export default defineCloudflareConfig()
