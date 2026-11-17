@@ -1,40 +1,11 @@
 'use client'
 
-import {
-    BellIcon,
-    ChatsCircleIcon,
-    HouseIcon,
-    MapTrifoldIcon,
-    SirenIcon,
-} from '@phosphor-icons/react/dist/ssr'
-import type { Icon } from '@phosphor-icons/react'
+import { MagnifyingGlassIcon, PencilSimpleLineIcon } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { FormEvent, Suspense, useEffect } from 'react'
 
-import { isFeatureEnabled } from '@/lib/features'
-
-const NAV_ITEMS: {
-    href: string
-    label: string
-    icon: Icon
-    enabled: boolean
-}[] = [
-    { href: '/feed', label: 'Início', icon: HouseIcon, enabled: true },
-    { href: '/alerts', label: 'Alertas', icon: SirenIcon, enabled: true },
-    { href: '/map', label: 'Mapa', icon: MapTrifoldIcon, enabled: true },
-    {
-        href: '/feira/conversas',
-        label: 'Mensagens',
-        icon: ChatsCircleIcon,
-        enabled: isFeatureEnabled('messages'),
-    },
-    {
-        href: '/notifications',
-        label: 'Notificações',
-        icon: BellIcon,
-        enabled: isFeatureEnabled('notifications'),
-    },
-]
+import { useCompose } from './post/compose-context'
 
 export function Logo() {
     return (
@@ -57,53 +28,74 @@ export function Logo() {
     )
 }
 
-export function Header() {
-    const path = usePathname()
+function FeedSearch() {
+    const router = useRouter()
+    const query = useSearchParams().get('q') ?? ''
+
+    function search(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
+        const term = String(new FormData(event.currentTarget).get('q') ?? '').trim()
+        const params = term ? '?' + new URLSearchParams({ q: term }).toString() : ''
+        router.push('/feed' + params)
+    }
 
     return (
-        <header className="border-b border-neutral-100 fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-lg z-10 pt-[env(safe-area-inset-top)]">
-            {/* celular: só a marca; a navegação fica na barra inferior */}
-            <div className="lg:hidden h-12 flex items-center justify-center">
-                <Link href={'/feed'} aria-label="Neybor, ir para o início">
-                    <Logo />
-                </Link>
-            </div>
-            <div className="hidden lg:grid max-w-7xl mx-auto h-14 grid-cols-3 items-center px-4">
-                <nav
-                    aria-label="Navegação principal"
-                    className="flex gap-2 items-center w-80"
-                >
-                    {NAV_ITEMS.filter((item) => item.enabled).map(
-                        ({ href, label, icon: ItemIcon }) => (
-                            <Link
-                                key={href}
-                                data-active={path === href}
-                                aria-current={
-                                    path === href ? 'page' : undefined
-                                }
-                                aria-label={label}
-                                title={label}
-                                href={href}
-                                className="data-[active=true]:text-green-600 text-2xl p-2 text-neutral-700 rounded-full cursor-pointer transition-all hover:bg-green-50 hover:text-green-600"
-                            >
-                                <ItemIcon
-                                    weight={path === href ? 'fill' : 'regular'}
-                                />
-                            </Link>
-                        ),
-                    )}
-                </nav>
-                <div className="w-full flex justify-center">
-                    <Link href={'/feed'} aria-label="Neybor, ir para o início">
+        <form role="search" onSubmit={search} className="group flex w-full max-w-md items-center gap-2 rounded-full bg-neutral-100 pr-1 pl-3.5 transition-colors focus-within:bg-white focus-within:ring-2 focus-within:ring-tint-strong hover:bg-neutral-200/60 focus-within:hover:bg-white lg:bg-white lg:hover:bg-white">
+            <MagnifyingGlassIcon size={16} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-500" />
+            <label htmlFor="feed-search" className="sr-only">Buscar no feed</label>
+            <input
+                id="feed-search"
+                key={query}
+                name="q"
+                type="search"
+                defaultValue={query}
+                placeholder="Buscar no bairro…"
+                autoComplete="off"
+                className="min-w-0 flex-1 bg-transparent py-2 text-base text-neutral-900 outline-none placeholder:text-neutral-500 lg:text-sm"
+            />
+            <kbd className="mr-2 hidden rounded bg-neutral-100 px-1.5 text-[0.6875rem] font-medium text-neutral-500 lg:inline">/</kbd>
+        </form>
+    )
+}
+
+export function Header() {
+    const { openCompose } = useCompose()
+
+    useEffect(() => {
+        function focusSearch(event: KeyboardEvent) {
+            const target = event.target as HTMLElement | null
+            if (event.key !== '/' || event.metaKey || event.ctrlKey || target?.closest('input, textarea, [contenteditable="true"]')) return
+            event.preventDefault()
+            document.getElementById('feed-search')?.focus()
+        }
+        window.addEventListener('keydown', focusSearch)
+        return () => window.removeEventListener('keydown', focusSearch)
+    }, [])
+
+    return (
+        <header className="fixed inset-x-0 top-0 z-10 border-b border-neutral-200 bg-white/90 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-white/80 lg:border-transparent lg:bg-canvas/90 lg:supports-[backdrop-filter]:bg-canvas/80">
+            <div className="flex h-12 w-full items-center gap-3 px-3 sm:px-5 lg:h-14 lg:gap-0 lg:px-0">
+                {/* No desktop o logo ocupa a largura do menu lateral, e a busca começa onde começa o feed. */}
+                <div className="flex shrink-0 items-center lg:w-60 lg:px-6 lg:in-data-[sidebar=collapsed]:w-[4.5rem] lg:in-data-[sidebar=collapsed]:px-[1.3125rem]">
+                    <Link href="/feed" aria-label="Neybor, ir para o início" className="flex items-center gap-2 rounded-md text-neutral-950">
                         <Logo />
+                        <span className="hidden text-lg font-bold tracking-tight lg:inline lg:in-data-[sidebar=collapsed]:hidden">Neybor</span>
                     </Link>
                 </div>
-                <div className="w-80 ml-auto">
-                    <input
-                        className="rounded-full w-full px-4 py-1 border-2 border-neutral-100"
-                        type="search"
-                        placeholder="Buscar"
-                    />
+                <div className="flex min-w-0 flex-1 lg:px-8">
+                    <Suspense>
+                        <FeedSearch />
+                    </Suspense>
+                </div>
+                <div className="hidden shrink-0 justify-end lg:flex lg:pr-8 xl:w-80 xl:px-6">
+                    <button
+                        type="button"
+                        onClick={() => openCompose()}
+                        className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-neutral-950 px-4 text-sm font-bold text-white transition-[background-color,transform] duration-150 ease-snappy hover:bg-neutral-800 active:scale-[0.97] motion-reduce:active:scale-100"
+                    >
+                        <PencilSimpleLineIcon size={16} weight="bold" aria-hidden="true" />
+                        Publicar
+                    </button>
                 </div>
             </div>
         </header>

@@ -1,8 +1,12 @@
 'use client'
 
-import { CaretDownIcon, SirenIcon, XIcon } from '@phosphor-icons/react'
+import {
+    CaretDownIcon,
+    PushPinIcon,
+    SirenIcon,
+    XIcon,
+} from '@phosphor-icons/react'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { useState } from 'react'
 
 import { useOfficialAlerts } from '@/hooks/use-official-alerts'
@@ -16,141 +20,136 @@ const STORAGE_KEY = 'neybor:dismissed-official-alerts'
 
 function readDismissed(): number[] {
     try {
-        return JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '[]')
+        const ids: unknown = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '[]')
+        return Array.isArray(ids) ? ids.filter((id) => typeof id === 'number') : []
     } catch {
         return []
     }
 }
 
-function writeDismissed(ids: number[]) {
-    try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
-    } catch {
-        // sessionStorage indisponível: o aviso só volta no próximo carregamento
-    }
-}
-
-/** Faixa com os alertas oficiais ativos na região do usuário. Dispensar vale só para a sessão. */
-export function OfficialAlertBanner() {
+/** Avisos oficiais continuam acima dos relatos da comunidade, independentemente da ordenação. */
+export function OfficialAlertBanner({ pinned = false }: { pinned?: boolean }) {
     const { alerts } = useOfficialAlerts()
-    // lido uma vez; sem alertas carregados o componente não renderiza nada, então não há divergência de hidratação
     const [dismissed, setDismissed] = useState<number[]>(() =>
         typeof window === 'undefined' ? [] : readDismissed(),
     )
 
-    const visible = alerts.filter((a) => !dismissed.includes(a.id))
+    const visible = alerts.filter((alert) => !dismissed.includes(alert.id))
     if (visible.length === 0) return null
 
     function dismiss(id: number) {
         const next = [...dismissed, id]
         setDismissed(next)
-        writeDismissed(next)
+        try {
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+        } catch {
+            // O aviso permanece dispensado enquanto esta tela estiver aberta.
+        }
     }
 
     return (
-        <section aria-label="Alertas oficiais" className="mb-4 space-y-2">
-            {visible.map((alert) => (
-                <OfficialAlertCard
-                    key={alert.id}
-                    alert={alert}
-                    onDismiss={() => dismiss(alert.id)}
-                />
-            ))}
+        <section aria-label="Avisos oficiais" className={`overflow-hidden rounded-2xl bg-canvas ${pinned ? 'mt-3 mb-1' : 'mb-4'}`}>
+            <h2 className="flex items-center gap-1.5 px-3 pt-3 text-[0.6875rem] font-bold tracking-wide text-neutral-600 uppercase">
+                {pinned && <PushPinIcon weight="fill" size={13} aria-hidden="true" />}
+                {pinned ? 'Avisos oficiais fixados' : 'Avisos oficiais'}
+            </h2>
+            <div className="divide-y-2 divide-white">
+                {visible.map((alert) => (
+                    <OfficialAlertPost
+                        key={alert.id}
+                        alert={alert}
+                        onDismiss={() => dismiss(alert.id)}
+                    />
+                ))}
+            </div>
         </section>
     )
 }
 
-function OfficialAlertCard({
+function OfficialAlertPost({
     alert,
     onDismiss,
 }: {
     alert: OfficialAlert
     onDismiss: () => void
 }) {
-    const [open, setOpen] = useState(false)
     const style = OFFICIAL_SEVERITY_STYLE[alert.severity]
-    const title = alert.event ?? alert.headline ?? 'Alerta oficial'
-    const hasDetails =
-        alert.description ||
-        alert.instruction ||
-        alert.areaDesc ||
-        alert.webUrl
+    // No feed a gravidade se lê pelo rótulo e pelo peso, sem cor; o mapa mantém as cores.
+    const badge = alert.severity === 'CRITICAL' || alert.severity === 'HIGH' ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-700'
+    const title = alert.event ?? alert.headline ?? 'Aviso oficial'
+    const issuer = OFFICIAL_SOURCE_LABEL[alert.source]
+    const source = alert.senderName ?? issuer
+    const expiresAt = alert.expiresAt ? new Date(alert.expiresAt) : null
+    const hasDetails = alert.description || alert.instruction || alert.areaDesc || alert.webUrl
+
+    const [leaving, setLeaving] = useState(false)
+
+    function dismiss() {
+        // Com movimento reduzido não há transição, então o aviso sai na hora.
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) onDismiss()
+        else setLeaving(true)
+    }
 
     return (
-        <article className={`rounded-2xl border p-3 ${style.box}`}>
-            <div className="flex items-start gap-2">
-                <SirenIcon
-                    weight="bold"
-                    className="mt-0.5 shrink-0 text-xl text-neutral-700"
-                />
-                <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <strong className="font-semibold leading-tight text-neutral-800">
-                            {title}
-                        </strong>
-                        <span
-                            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${style.badge}`}
-                        >
-                            {style.label}
-                        </span>
+        <div
+            className={`grid transition-[grid-template-rows,opacity] duration-[220ms] ease-snappy ${leaving ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr]'}`}
+            onTransitionEnd={(event) => {
+                if (leaving && event.target === event.currentTarget && event.propertyName === 'grid-template-rows') onDismiss()
+            }}
+        >
+            <div className="min-h-0 overflow-hidden">
+                <article className="flex items-start gap-2.5 px-3 py-2.5" aria-label={title}>
+                    <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-white text-neutral-700">
+                        <SirenIcon weight="duotone" size={16} aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                        <header>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <h3 className="text-sm font-bold break-words text-neutral-900">{title}</h3>
+                                <span className={`rounded-md px-1.5 py-0.5 text-xs font-semibold ${badge}`}>
+                                    {style.label}
+                                </span>
+                            </div>
+                            <p className="mt-0.5 text-xs text-neutral-600">
+                                {source}
+                                {expiresAt && !Number.isNaN(expiresAt.getTime()) && (
+                                    <>
+                                        {' · até '}
+                                        <time dateTime={expiresAt.toISOString()}>{format(expiresAt, "dd/MM 'às' HH:mm")}</time>
+                                    </>
+                                )}
+                            </p>
+                        </header>
+                        {hasDetails && (
+                            <details className="details-animate group">
+                                <summary className="inline-flex min-h-8 cursor-pointer list-none items-center gap-1 rounded text-xs font-semibold text-green-800 hover:underline [&::-webkit-details-marker]:hidden">
+                                    <span className="group-open:hidden">Ver detalhes</span>
+                                    <span className="hidden group-open:inline">Ocultar detalhes</span>
+                                    <CaretDownIcon weight="bold" aria-hidden="true" className="group-open:rotate-180" />
+                                </summary>
+                                <div className="max-w-prose space-y-2 pt-1 text-sm leading-relaxed wrap-break-word text-neutral-700">
+                                    {alert.instruction && <p><strong>O que fazer</strong><br />{alert.instruction}</p>}
+                                    {alert.description && <p>{alert.description}</p>}
+                                    {alert.areaDesc && <p><strong>Área</strong> {alert.areaDesc}</p>}
+                                    {alert.webUrl && (
+                                        <a href={alert.webUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center font-semibold text-green-800 underline">
+                                            Ver no site oficial
+                                        </a>
+                                    )}
+                                </div>
+                            </details>
+                        )}
                     </div>
-                    <p className="mt-0.5 text-sm leading-tight text-neutral-600">
-                        Fonte: {alert.senderName ?? OFFICIAL_SOURCE_LABEL[alert.source]}
-                        {alert.expiresAt &&
-                            ` · até ${format(new Date(alert.expiresAt), "dd/MM 'às' HH:mm", { locale: ptBR })}`}
-                    </p>
-                    {open && (
-                        <div className="mt-2 space-y-2 text-sm text-neutral-700">
-                            {alert.description && <p>{alert.description}</p>}
-                            {alert.instruction && (
-                                <p>
-                                    <strong className="font-semibold">
-                                        O que fazer:{' '}
-                                    </strong>
-                                    {alert.instruction}
-                                </p>
-                            )}
-                            {alert.areaDesc && (
-                                <p className="text-neutral-500">
-                                    Área: {alert.areaDesc}
-                                </p>
-                            )}
-                            {alert.webUrl && (
-                                <a
-                                    href={alert.webUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="font-semibold text-green-700"
-                                >
-                                    Ver no site oficial
-                                </a>
-                            )}
-                        </div>
-                    )}
-                    {hasDetails && (
-                        <button
-                            type="button"
-                            onClick={() => setOpen((v) => !v)}
-                            aria-expanded={open}
-                            className="mt-1 flex items-center gap-1 text-sm font-semibold text-neutral-700"
-                        >
-                            {open ? 'Ocultar' : 'Ver detalhes'}
-                            <CaretDownIcon
-                                weight="bold"
-                                className={open ? 'rotate-180' : ''}
-                            />
-                        </button>
-                    )}
-                </div>
-                <button
-                    type="button"
-                    onClick={onDismiss}
-                    aria-label="Dispensar alerta"
-                    className="shrink-0 rounded-full p-1 text-neutral-500 hover:bg-black/5"
-                >
-                    <XIcon weight="bold" />
-                </button>
+                    <button
+                        type="button"
+                        onClick={dismiss}
+                        aria-label={`Dispensar aviso: ${title}`}
+                        className="-mt-1 -mr-1.5 grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-neutral-500 hover:bg-neutral-200/70 hover:text-neutral-900"
+                    >
+                        <XIcon size={16} weight="bold" aria-hidden="true" />
+                    </button>
+                </article>
             </div>
-        </article>
+        </div>
     )
 }

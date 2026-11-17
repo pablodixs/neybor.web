@@ -6,12 +6,11 @@ import { Spinner } from '../spinner'
 import { Button } from '../button'
 import {
     ArrowRightIcon,
+    MapPinIcon,
     WarningIcon,
     ArrowClockwiseIcon,
     CloudSunIcon,
-    DropIcon,
     SunIcon,
-    UmbrellaIcon,
 } from '@phosphor-icons/react/dist/ssr'
 import {
     CloudFogIcon,
@@ -19,7 +18,6 @@ import {
     CloudRainIcon,
 } from '@phosphor-icons/react'
 import { ReactNode } from 'react'
-import { Tooltip } from '../tooltip'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -44,33 +42,33 @@ interface WheatherApiResponse {
 }
 
 const WHEATHER_CODE_MAP: { [key: number]: ReactNode } = {
-    0: <SunIcon className="text-yellow-500 text-2xl" weight="bold" />,
-    1: <CloudSunIcon className="text-gray-500 text-2xl" weight="bold" />,
-    2: <CloudSunIcon className="text-gray-500 text-2xl" weight="bold" />,
-    3: <CloudSunIcon className="text-gray-500 text-2xl" weight="bold" />,
-    45: <CloudFogIcon className="text-gray-500 text-2xl" weight="bold" />,
-    48: <CloudFogIcon className="text-gray-500 text-2xl" weight="bold" />,
-    51: <CloudRainIcon className="text-blue-800-500 text-2xl" weight="bold" />,
-    53: <CloudRainIcon className="text-blue-800-500 text-2xl" weight="bold" />,
-    55: <CloudRainIcon className="text-blue-800-500 text-2xl" weight="bold" />,
+    0: <SunIcon className="text-neutral-600 text-2xl" weight="bold" />,
+    1: <CloudSunIcon className="text-neutral-600 text-2xl" weight="bold" />,
+    2: <CloudSunIcon className="text-neutral-600 text-2xl" weight="bold" />,
+    3: <CloudSunIcon className="text-neutral-600 text-2xl" weight="bold" />,
+    45: <CloudFogIcon className="text-neutral-600 text-2xl" weight="bold" />,
+    48: <CloudFogIcon className="text-neutral-600 text-2xl" weight="bold" />,
+    51: <CloudRainIcon className="text-neutral-600 text-2xl" weight="bold" />,
+    53: <CloudRainIcon className="text-neutral-600 text-2xl" weight="bold" />,
+    55: <CloudRainIcon className="text-neutral-600 text-2xl" weight="bold" />,
     61: (
-        <CloudRainIcon className="text-indigo-900-500 text-2xl" weight="bold" />
+        <CloudRainIcon className="text-neutral-600 text-2xl" weight="bold" />
     ),
     80: (
         <CloudLightningIcon
-            className="text-indigo-900-500 text-2xl"
+            className="text-neutral-600 text-2xl"
             weight="bold"
         />
     ),
     81: (
         <CloudLightningIcon
-            className="text-indigo-900-500 text-2xl"
+            className="text-neutral-600 text-2xl"
             weight="bold"
         />
     ),
     82: (
         <CloudLightningIcon
-            className="text-indigo-900-500 text-2xl"
+            className="text-neutral-600 text-2xl"
             weight="bold"
         />
     ),
@@ -88,112 +86,71 @@ export function MyNeighborhoodAlerts() {
         )
 
     const { data: weatherData } = useSWR<WheatherApiResponse>(
-        `https://api.open-meteo.com/v1/forecast?latitude=${data?.latitude}&longitude=${data?.longitude}&current=temperature_2m,weather_code,relative_humidity_2m,precipitation_probability&timezone=America/Sao_Paulo`,
+        data && `https://api.open-meteo.com/v1/forecast?latitude=${data.latitude}&longitude=${data.longitude}&current=temperature_2m,weather_code,relative_humidity_2m,precipitation_probability&timezone=America/Sao_Paulo`,
         fetcher,
         { refreshInterval: 15 * 60 * 1000 },
     )
 
     if (error) {
         return (
-            <div className="bg-white border border-neutral-100 p-4 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto mb-4">
-                <span className="text-orange-500 font-medium">
-                    <div>
-                        <WarningIcon weight="bold" className="text-xl" />
-                    </div>
-                    <p className="leading-tight my-2">
-                        Houve um erro ao obter sua vizinhança
-                    </p>
-                    <Button
-                        activityIndicator={isValidating}
-                        fullWidth
-                        onClick={() => mutate()}
-                        icon={ArrowClockwiseIcon}
-                        variant="bordered"
-                        size="sm"
-                    >
-                        Tentar novamente
+            <section className="rounded-2xl bg-white p-4">
+                <p className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+                    <WarningIcon weight="bold" aria-hidden="true" />
+                    Não foi possível carregar sua vizinhança.
+                </p>
+                <div className="mt-3">
+                    <Button activityIndicator={isValidating} onClick={() => mutate()} icon={ArrowClockwiseIcon} variant="bordered" size="sm">
+                        Tentar de novo
                     </Button>
-                </span>
-            </div>
+                </div>
+            </section>
         )
     }
 
+    const weather = weatherData?.current
+
     return (
-        <div className="bg-white border border-neutral-100 p-4 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto mb-4">
+        <section aria-labelledby="vizinhanca-titulo" className="rounded-2xl bg-white p-4">
             {isLoading ? (
                 <Spinner />
             ) : (
-                <section className="flex items-center gap-2">
-                    <div className="aspect-square w-12 bg-neutral-200 rounded-full"></div>
-                    <div className="flex flex-col">
-                        <strong className="font-semibold text-neutral-700 leading-tight">
-                            {data?.neighborhood}
-                        </strong>
-                        <span className="leading-tight text-neutral-500 text-sm font-medium">
-                            {data?.city}
-                        </span>
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <p className="text-xs font-medium text-neutral-500">Sua vizinhança</p>
+                        <h2 id="vizinhanca-titulo" className="truncate text-base font-bold text-neutral-950">{data?.neighborhood}</h2>
+                        <p className="truncate text-sm text-neutral-500">{data?.city}</p>
                     </div>
-                </section>
+                    <Link href="/map" aria-label="Ver no mapa" title="Ver no mapa" className="grid size-9 shrink-0 place-items-center rounded-full bg-tint text-on-tint transition-colors hover:bg-tint-strong">
+                        <MapPinIcon size={18} aria-hidden="true" />
+                    </Link>
+                </div>
             )}
-            {weatherData && (
-                <section className="mt-4">
-                    <div className="flex justify-evenly text-neutral-700">
-                        <Tooltip
-                            placement="bottom"
-                            content="Condição e temperatura"
-                        >
-                            <span className="flex gap-1 items-center">
-                                {
-                                    WHEATHER_CODE_MAP[
-                                        weatherData.current.weather_code
-                                    ]
-                                }
-                                <strong className="font-semibold text-lg select-none">
-                                    {weatherData.current.temperature_2m}°C
-                                </strong>
-                            </span>
-                        </Tooltip>
-                        <Tooltip placement="bottom" content="Umidade">
-                            <span className="flex gap-1 items-center">
-                                <DropIcon
-                                    weight="bold"
-                                    className="text-xl text-blue-900"
-                                />
-                                <strong className="font-semibold text-lg select-none">
-                                    {weatherData.current.relative_humidity_2m}%
-                                </strong>
-                            </span>
-                        </Tooltip>
-                        <Tooltip
-                            placement="bottom"
-                            content="Probabilidade de precipitação"
-                        >
-                            <span className="flex gap-1 items-center">
-                                <UmbrellaIcon
-                                    weight="bold"
-                                    className="text-xl text-indigo-900"
-                                />
-                                <strong className="font-semibold text-lg select-none">
-                                    {
-                                        weatherData.current
-                                            .precipitation_probability
-                                    }
-                                    %
-                                </strong>
-                            </span>
-                        </Tooltip>
+            {weather && (
+                <dl className="mt-4 grid grid-cols-3 gap-1 text-center">
+                    <div className="rounded-xl bg-canvas py-2.5">
+                        <dt className="sr-only">Temperatura</dt>
+                        <dd className="flex items-center justify-center gap-1 text-base font-bold text-neutral-900 tabular-nums [&_svg]:text-lg">
+                            {WHEATHER_CODE_MAP[weather.weather_code]}
+                            {Math.round(weather.temperature_2m)}°
+                        </dd>
+                        <p aria-hidden="true" className="text-xs text-neutral-500">Agora</p>
                     </div>
-                </section>
+                    <div className="rounded-xl bg-canvas py-2.5">
+                        <dt className="sr-only">Umidade</dt>
+                        <dd className="text-base font-bold text-neutral-900 tabular-nums">{weather.relative_humidity_2m}%</dd>
+                        <p aria-hidden="true" className="text-xs text-neutral-500">Umidade</p>
+                    </div>
+                    <div className="rounded-xl bg-canvas py-2.5">
+                        <dt className="sr-only">Chance de chuva</dt>
+                        <dd className="text-base font-bold text-neutral-900 tabular-nums">{weather.precipitation_probability}%</dd>
+                        <p aria-hidden="true" className="text-xs text-neutral-500">Chuva</p>
+                    </div>
+                </dl>
             )}
-            <section className="mt-4 pt-3 border-t border-neutral-100 text-neutral-600 leading-tight">
-                <Link
-                    href={'/alerts'}
-                    className="flex items-center justify-between font-semibold hover:text-green-600 transition"
-                >
-                    Ver alertas{' '}
-                    <ArrowRightIcon className="text-lg" weight="bold" />
-                </Link>
-            </section>
-        </div>
+            <Link href="/alerts" className="group mt-3 flex min-h-9 items-center justify-between rounded-lg text-sm font-semibold text-neutral-800 hover:text-neutral-950">
+                Ver alertas do bairro
+                <ArrowRightIcon weight="bold" aria-hidden="true" className="text-neutral-400 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+        </section>
     )
 }

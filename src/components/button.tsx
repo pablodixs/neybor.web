@@ -21,7 +21,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_CLASSES = {
-    primary: 'bg-green-600 hover:bg-green-700 text-white active:bg-green-900',
+    primary: 'bg-green-700 hover:bg-green-800 text-white active:bg-green-900',
     secondary:
         'bg-neutral-100 hover:bg-neutral-200 text-neutral-900 active:bg-neutral-300',
     bordered:
@@ -46,11 +46,12 @@ export function Button({
     activityIndicator,
     activityLabel,
     size = 'md',
+    disabled,
     ...props
 }: ButtonProps) {
     return (
         <button
-            disabled={activityIndicator || props.disabled}
+            disabled={activityIndicator || disabled}
             className={`${VARIANT_CLASSES[variant]} text-${textAlign} ${fullWidth ? 'w-full' : 'w-content'} text-nowrap flex gap-2 items-center justify-${textAlign} ${VARIANT_CLASSES[size]} cursor-pointer rounded-full font-semibold transition disabled:text-neutral-500 disabled:hover:bg-neutral-100 disabled:bg-neutral-100 disabled:outline-0 disabled:cursor-not-allowed`}
             {...props}
         >
@@ -61,7 +62,7 @@ export function Button({
                 />
             )}
             {activityIndicator && <Spinner size="sm" color="white" />}
-            {activityIndicator ? activityLabel : props.children}
+            {activityIndicator ? activityLabel ?? props.children : props.children}
             {Icon && iconPlacement === 'trailing' && (
                 <Icon
                     weight="bold"

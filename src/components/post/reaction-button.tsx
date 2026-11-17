@@ -53,6 +53,9 @@ export function ReactionButton({
 
     return (
         <button
+            type="button"
+            aria-label="Curtir comentário"
+            aria-pressed={liked}
             onClick={() => handleLike(comment.id, currentUserToken)}
             data-liked={liked}
             className="relative data-[liked=true]:text-red-600 cursor-pointer text-xl flex gap-1 rounded-full items-center text-neutral-500 hover:text-red-600 hover:bg-red-100 transition after:content-[''] after:block after:w-6 after:h-6 after:absolute after:-z-10 after:rounded-full after:transition hover:after:bg-red-50"

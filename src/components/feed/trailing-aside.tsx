@@ -1,24 +1,35 @@
-import { Button } from '../button'
+'use client'
+
+import { ArrowRightIcon, UserPlusIcon } from '@phosphor-icons/react/dist/ssr'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+
 import { InstallBanner } from '../pwa/install-banner'
 import { MyNeighborhoodAlerts } from './my-neighborhood-alerts'
 import { NewInFeira } from './new-in-feira'
 
 export function TrailingAside() {
+    const pathname = usePathname()
+
+    if (pathname === '/map') return null
+
     return (
-        <aside className="hidden xl:block w-80 shrink-0 sticky top-20 self-start">
-            <InstallBanner variant="card" />
+        <aside aria-label="Sua vizinhança" className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-80 shrink-0 space-y-3 overflow-y-auto pr-6 pb-8 pl-2 xl:block">
             <MyNeighborhoodAlerts />
-            <NewInFeira />
-            <div className="bg-white border border-neutral-100 p-4 rounded-2xl max-h-[calc(100vh-5rem)] overflow-y-auto mb-4">
-                <h2 className="text-xl font-semibold mb-2 text-neutral-700">
-                    Convide seus vizinhos!
-                </h2>
-                <p className="text-neutral-500 mb-4">
-                    Convide seus vizinhos para se juntarem ao Neybor e
-                    fortalecer a comunidade local.
-                </p>
-                <Button fullWidth>Obter código de convite</Button>
-            </div>
+            {pathname !== '/feira' && <NewInFeira />}
+            <InstallBanner variant="card" />
+            <section>
+                <Link href="/convidar" className="group flex items-center gap-3 rounded-2xl bg-white p-4 transition-colors hover:bg-tint/60">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-tint text-on-tint">
+                        <UserPlusIcon size={18} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-bold text-neutral-900">Convide seus vizinhos</span>
+                        <span className="block text-xs text-neutral-500">Quanto mais gente, mais útil o feed.</span>
+                    </span>
+                    <ArrowRightIcon size={16} aria-hidden="true" className="shrink-0 text-neutral-400 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+            </section>
         </aside>
     )
 }

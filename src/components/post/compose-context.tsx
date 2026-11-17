@@ -1,6 +1,5 @@
 'use client'
 
-import { AnimatePresence } from 'motion/react'
 import {
     createContext,
     ReactNode,
@@ -18,8 +17,8 @@ interface ComposeContextValue {
 const ComposeContext = createContext<ComposeContextValue | null>(null)
 
 /**
- * Mantém o diálogo de novo post num lugar só, para que tanto a coluna
- * lateral (desktop) quanto a barra inferior (celular) consigam abri-lo.
+ * Mantém o diálogo de novo post num lugar só, para que tanto o cabeçalho
+ * (desktop) quanto a barra inferior (celular) consigam abri-lo.
  */
 export function ComposeProvider({ children }: { children: ReactNode }) {
     const [isOpen, setIsOpen] = useState(false)
@@ -32,15 +31,12 @@ export function ComposeProvider({ children }: { children: ReactNode }) {
     return (
         <ComposeContext.Provider value={{ openCompose }}>
             {children}
-            <AnimatePresence>
-                {isOpen && (
-                    <NewPostDialog
-                        isOpen={isOpen}
-                        initialType={type}
-                        onClose={() => setIsOpen(false)}
-                    />
-                )}
-            </AnimatePresence>
+            {isOpen && (
+                <NewPostDialog
+                    initialType={type}
+                    onClose={() => setIsOpen(false)}
+                />
+            )}
         </ComposeContext.Provider>
     )
 }

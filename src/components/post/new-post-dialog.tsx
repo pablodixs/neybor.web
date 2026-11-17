@@ -1,57 +1,28 @@
 'use client'
 
 import {
-    MapPinIcon,
-    ImageIcon,
-    AtIcon,
-    ShoppingCartIcon,
-    XIcon,
-    WarningIcon,
-    NavigationArrowIcon,
-    GlobeIcon,
-    CityIcon,
-    ArrowLeftIcon,
-    InfoIcon,
-    EyeIcon,
     MagnifyingGlassIcon,
-    HouseLineIcon,
-    CaretRightIcon,
-    CaretLeftIcon,
+    MapPinIcon,
+    WarningIcon,
+    XIcon,
 } from '@phosphor-icons/react'
-import { Dispatch, SetStateAction, useState, useRef, MouseEvent } from 'react'
-import Image from 'next/image'
+import axios from 'axios'
 import { useSession } from 'next-auth/react'
-import { motion } from 'motion/react'
+import Image from 'next/image'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import { mutate } from 'swr'
 
-import { CircularProgressIndicator } from '../circular-progress-indicator'
-import { Button } from '../button'
-import axios from 'axios'
-import { Tooltip } from '../tooltip'
-import { useToast } from '../toast'
 import { friendlyApiError } from '@/lib/api-error'
+
+import { Button } from '../button'
+import { useToast } from '../toast'
 import { AlertCategoryKey, AlertCategoryPicker } from './alert-category-picker'
-import { RecomendationsLabel } from './post-type-labels/recomendations-label'
-import {
-    checkKindness,
-    KindnessCheck,
-    KindnessReminder,
-} from './kindness-reminder'
+import { checkKindness, KindnessCheck, KindnessReminder } from './kindness-reminder'
 
 export type ComposeType = 'GENERAL' | 'SAFETY_ALERT'
 
-interface NewPostDialogProps {
-    isOpen: boolean
-    onClose: () => void
-    initialType?: ComposeType
-}
-
-enum PostType {
-    SAFETY_ALERT,
-    MARKETPLACE,
-    RECOMMENDATION,
-    GENERAL,
-}
+type PostType = ComposeType | 'RECOMMENDATION'
+type PostVisibility = 'PUBLIC' | 'NEAR_NEIGHBORHOODS' | 'NEIGHBORHOOD'
 
 interface Coordinates {
     latitude: number
@@ -60,42 +31,58 @@ interface Coordinates {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
+const FORMATS = [
+    { type: 'SAFETY_ALERT', label: 'Alerta', icon: WarningIcon },
+    { type: 'RECOMMENDATION', label: 'Recomendação', icon: MagnifyingGlassIcon },
+] as const
+
 export function NewPostDialog({
-    isOpen,
     onClose,
     initialType = 'GENERAL',
-}: NewPostDialogProps) {
+}: {
+    onClose: () => void
+    initialType?: ComposeType
+}) {
+    const dialogRef = useRef<HTMLDialogElement>(null)
+    const editorRef = useRef<HTMLTextAreaElement>(null)
+    const reminderRef = useRef<HTMLDivElement>(null)
     const [postContent, setPostContent] = useState('')
-    const [postVisibility, setPostVisibility] = useState(
-        initialType === 'SAFETY_ALERT' ? 'NEIGHBORHOOD' : 'PUBLIC',
-    )
-    const [postType, setPostType] = useState<PostType>(
-        initialType === 'SAFETY_ALERT'
-            ? PostType.SAFETY_ALERT
-            : PostType.GENERAL,
-    )
-    const [alertCategory, setAlertCategory] = useState<AlertCategoryKey | null>(
-        null,
-    )
+    const [postType, setPostType] = useState<PostType>(initialType)
+    const [selectedVisibility, setSelectedVisibility] = useState<PostVisibility>()
+    const [alertCategory, setAlertCategory] = useState<AlertCategoryKey | null>(null)
     const [coords, setCoords] = useState<Coordinates | null>(null)
     const [isLocating, setIsLocating] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
-
-    const isAlert = postType === PostType.SAFETY_ALERT
-
-    const [isPostSending, setIsPostSending] = useState(false)
-    const [currentStep, setCurrentStep] = useState('draft')
-    const [kindnessCheck, setKindnessCheck] = useState<KindnessCheck | null>(
-        null,
-    )
     const [isCheckingKindness, setIsCheckingKindness] = useState(false)
-    // texto que a pessoa decidiu publicar mesmo após o lembrete
-    const [acknowledgedContent, setAcknowledgedContent] = useState<
-        string | null
-    >(null)
-
+    const [isPostSending, setIsPostSending] = useState(false)
+    const [kindnessCheck, setKindnessCheck] = useState<KindnessCheck | null>(null)
+    const [acknowledgedContent, setAcknowledgedContent] = useState<string | null>(null)
     const { data } = useSession()
     const toast = useToast()
+    const isAlert = postType === 'SAFETY_ALERT'
+    const visibility = selectedVisibility ?? (isAlert ? 'NEIGHBORHOOD' : 'PUBLIC')
+    const token = data?.user.token
+    const busy = isCheckingKindness || isPostSending
+    const valid = !!token && !isLocating && postContent.trim().length >= 2 &&
+        postContent.length <= 300 && (!isAlert || !!alertCategory)
+
+    useEffect(() => {
+        const dialog = dialogRef.current
+        const trigger = document.activeElement
+        dialog?.showModal()
+
+        return () => {
+            dialog?.close()
+            if (trigger instanceof HTMLElement && trigger.isConnected) {
+                trigger.focus({ preventScroll: true })
+            }
+        }
+    }, [])
+
+    useEffect(() => {
+        const target = kindnessCheck ? reminderRef.current : editorRef.current
+        target?.focus({ preventScroll: true })
+    }, [kindnessCheck])
 
     function handleLocate() {
         if (coords) {
@@ -117,461 +104,166 @@ export function NewPostDialog({
                 setIsLocating(false)
             },
             () => {
-                setErrorMessage(
-                    'Não conseguimos pegar sua localização. Vamos usar o endereço do seu perfil.',
-                )
+                setErrorMessage('Não foi possível obter sua localização. Você pode publicar com o endereço do perfil.')
                 setIsLocating(false)
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
         )
     }
 
-    async function handleNext() {
-        if (acknowledgedContent === postContent) {
-            setCurrentStep('post-visibility')
-            return
-        }
-        setIsCheckingKindness(true)
-        const check = await checkKindness(postContent, data?.user.token)
-        setIsCheckingKindness(false)
-        if (check?.flagged) {
-            setKindnessCheck(check)
-            setCurrentStep('kindness')
-            return
-        }
-        setCurrentStep('post-visibility')
-    }
-
-    function handleSendPost() {
+    async function sendPost() {
         setIsPostSending(true)
         setErrorMessage(null)
 
-        axios
-            .post(
+        try {
+            await axios.post(
                 `${API_URL}/post`,
                 {
                     content: postContent,
-                    type: PostType[postType],
-                    visibility: postVisibility,
+                    type: postType,
+                    visibility,
                     alertCategory: isAlert ? alertCategory : undefined,
                     collaborative: isAlert ? true : undefined,
                     latitude: coords?.latitude,
                     longitude: coords?.longitude,
                 },
-                {
-                    headers: {
-                        Authorization: `Bearer ${data?.user.token}`,
-                    },
-                },
+                { headers: { Authorization: `Bearer ${token}` } },
             )
-            .then(() => {
-                // atualiza listas que mostram o post novo
-                mutate(
-                    (key) =>
-                        Array.isArray(key) &&
-                        typeof key[0] === 'string' &&
-                        /\/(alerts|feed)/.test(key[0]),
-                )
-                toast.show('Publicado! Seus vizinhos já podem ver.')
-                onClose()
-            })
-            .catch((error) => {
-                setErrorMessage(
-                    friendlyApiError(
-                        error,
-                        'Não foi possível publicar agora. Tente de novo.',
-                    ),
-                )
-            })
-            .finally(() => {
-                setIsPostSending(false)
-            })
+
+            void mutate(
+                (key) =>
+                    Array.isArray(key) &&
+                    typeof key[0] === 'string' &&
+                    /\/(alerts|feed)/.test(key[0]),
+            )
+            toast.show(
+                isAlert ? 'Alerta publicado e adicionado ao mapa.' : 'Post publicado.',
+            )
+            onClose()
+        } catch (error) {
+            setErrorMessage(friendlyApiError(error, 'Não foi possível publicar agora. Tente de novo.'))
+        } finally {
+            setIsPostSending(false)
+        }
+    }
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
+        if (!valid || busy) return
+
+        if (acknowledgedContent !== postContent) {
+            setIsCheckingKindness(true)
+            const check = await checkKindness(postContent, token)
+            setIsCheckingKindness(false)
+            if (check?.flagged) {
+                setKindnessCheck(check)
+                return
+            }
+        }
+        await sendPost()
     }
 
     return (
-        <>
-            <motion.dialog
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={
-                    isOpen
-                        ? { opacity: 1, scale: 1 }
-                        : { opacity: 0, scale: 0.95 }
-                }
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3, type: 'spring', bounce: 0 }}
-                open={isOpen}
-                className="z-50 fixed top-[calc(0.5rem+env(safe-area-inset-top))] sm:top-20 inset-x-2 sm:inset-x-0 mx-auto p-4 bg-white rounded-2xl max-w-2xl w-auto sm:w-full max-h-[calc(100dvh-1rem)] overflow-y-auto"
-            >
-                <header className="flex items-center justify-between">
-                    <h1 className="font-semibold text-neutral-800 tracking-tight text-2xl">
-                        Novo Post
-                    </h1>
-                    <button
-                        className="p-2 rounded-full text-neutral-700 bg-neutral-100 hover:bg-neutral-200 cursor-pointer text-lg transition"
-                        onClick={onClose}
-                    >
-                        <XIcon weight="bold" />
-                    </button>
-                </header>
-                {currentStep === 'draft' && (
-                    <fieldset
-                        disabled={isCheckingKindness}
-                        className="contents"
-                    >
-                        {/* trava o rascunho enquanto a checagem de gentileza
-                        roda, para o resultado valer para o texto publicado */}
-                        <section className="py-4">
-                            <div className="flex gap-2 items-center">
-                                <Image
-                                    className="rounded-full aspect-square object-cover w-9 h-9 mb-1"
-                                    src={
-                                        data?.user.avatarUrl ||
-                                        '/images/default-avatar.png'
-                                    }
-                                    alt={
-                                        data?.user.displayName || 'User avatar'
-                                    }
-                                    width={36}
-                                    height={36}
-                                />
-                                <div className="flex flex-col gap-2">
-                                    <strong className="flex font-semibold leading-3 items-center gap-1">
-                                        {data?.user.displayName}
-                                    </strong>
-                                </div>
-                            </div>
-                            <section className="pl-11">
-                                {postType === PostType.RECOMMENDATION && (
-                                    <RecomendationsLabel />
-                                )}
-                                <textarea
-                                    onChange={(e) =>
-                                        setPostContent(e.target.value)
-                                    }
-                                    value={postContent}
-                                    autoFocus
-                                    placeholder={
-                                        isAlert
-                                            ? 'Descreva o que está acontecendo e onde'
-                                            : 'O que está acontecendo?'
-                                    }
-                                    className="text-xl font-medium w-full resize-none outline-0 field-sizing-content"
-                                    rows={4}
-                                />
-                                {isAlert && (
-                                    <AlertCategoryPicker
-                                        value={alertCategory}
-                                        onChange={setAlertCategory}
-                                    />
-                                )}
-                                {coords && (
-                                    <p className="inline-flex items-center gap-1 text-sm font-semibold text-green-700 bg-green-50 rounded-full px-3 py-1">
-                                        <NavigationArrowIcon weight="fill" />
-                                        Usando sua localização atual
-                                    </p>
-                                )}
-                            </section>
-                            {errorMessage && currentStep === 'draft' && (
-                                <p
-                                    role="alert"
-                                    className="ml-2 mt-2 text-red-700 font-semibold text-sm flex gap-2 items-center"
-                                >
-                                    <WarningIcon weight="bold" size={18} />{' '}
-                                    {errorMessage}
-                                </p>
-                            )}
-                            {postContent.length > 300 && (
-                                <p className="ml-2 mt-2 text-red-700 font-semibold text-sm flex gap-2 items-center">
-                                    <WarningIcon weight="bold" size={18} />{' '}
-                                    Limite de 300 caracteres excedido.
-                                </p>
-                            )}
-                        </section>
-                        <PostTypeOptions
-                            onTypeSelectChange={setPostType}
-                            typeSelected={postType}
-                        />
-                        <section className="flex justify-between">
-                            <div className="flex gap-2 fle-1 items-center">
-                                <Tooltip
-                                    content={
-                                        coords
-                                            ? 'Remover localização atual'
-                                            : 'Usar minha localização atual'
-                                    }
-                                >
-                                    <button
-                                        type="button"
-                                        onClick={handleLocate}
-                                        disabled={isLocating}
-                                        aria-pressed={!!coords}
-                                        aria-label="Usar minha localização atual"
-                                        data-active={!!coords}
-                                        className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 data-[active=true]:text-green-700 data-[active=true]:bg-green-50 rounded-full cursor-pointer disabled:animate-pulse"
-                                    >
-                                        <MapPinIcon
-                                            weight={coords ? 'fill' : 'bold'}
-                                        />
-                                    </button>
-                                </Tooltip>
-                                <Tooltip content="Adicionar mídia">
-                                    <button className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 rounded-full cursor-pointer">
-                                        <ImageIcon weight="bold" />
-                                    </button>
-                                </Tooltip>
-                                <Tooltip content="Marcar pessoas">
-                                    <button className="aspect-square p-3 text-xl text-neutral-700 hover:bg-green-50 hover:text-green-700 rounded-full cursor-pointer">
-                                        <AtIcon weight="bold" />
-                                    </button>
-                                </Tooltip>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <Tooltip
-                                    content={`${postContent.length}/300 caracteres`}
-                                >
-                                    <CircularProgressIndicator
-                                        size={26}
-                                        value={(postContent.length / 300) * 100}
-                                    />
-                                </Tooltip>
-                                <Button
-                                    disabled={
-                                        postContent.length < 2 ||
-                                        postContent.length > 300 ||
-                                        (isAlert && !alertCategory)
-                                    }
-                                    activityIndicator={isCheckingKindness}
-                                    onClick={handleNext}
-                                >
-                                    Próximo
-                                </Button>
-                            </div>
-                        </section>
-                    </fieldset>
-                )}
-                {currentStep === 'kindness' && kindnessCheck && (
+        <dialog
+            ref={dialogRef}
+            aria-labelledby="compose-title"
+            onCancel={(event) => {
+                event.preventDefault()
+                if (!busy) onClose()
+            }}
+            className="fixed inset-x-0 top-[calc(0.5rem+env(safe-area-inset-top))] bottom-auto mx-auto mb-0 max-h-[calc(100dvh-1rem-env(safe-area-inset-top))] w-[calc(100%-1rem)] max-w-xl overflow-y-auto overscroll-contain rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-900 backdrop:bg-black/50 sm:top-16 sm:max-h-[calc(100dvh-5rem)] sm:p-5"
+        >
+            <header className="flex items-center justify-between gap-3">
+                <h2 id="compose-title" className="text-xl font-semibold tracking-tight">Novo post</h2>
+                <button type="button" aria-label="Fechar" disabled={busy} onClick={onClose} className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full bg-neutral-100 text-neutral-700 hover:bg-neutral-200 disabled:cursor-wait">
+                    <XIcon size={18} weight="bold" aria-hidden="true" />
+                </button>
+            </header>
+            {kindnessCheck ? (
+                <div ref={reminderRef} tabIndex={-1}>
                     <KindnessReminder
                         check={kindnessCheck}
-                        onEdit={() => setCurrentStep('draft')}
+                        onEdit={() => setKindnessCheck(null)}
                         onPublishAnyway={() => {
                             setAcknowledgedContent(postContent)
-                            setCurrentStep('post-visibility')
+                            setKindnessCheck(null)
+                            void sendPost()
                         }}
                     />
-                )}
-                {currentStep === 'post-visibility' && (
-                    <div className="flex flex-col items-center justify-center pt-8">
-                        <EyeIcon size={48} className="text-neutral-800" />
-                        <p className="font-semibold text-xl text-neutral-800 text-center">
-                            Escolha onde seu post será visível:
-                        </p>
-                        <div className="mt-6 flex flex-wrap gap-2 sm:gap-4 w-full items-center justify-center">
-                            <button
-                                data-selected={postVisibility === 'PUBLIC'}
-                                onClick={() => setPostVisibility('PUBLIC')}
-                                className="cursor-pointer text-neutral-800 px-4 py-2 border-2 border-neutral-100 rounded-full flex items-center gap-2 font-semibold hover:border-green-600 hover:text-green-600 transition data-[selected=true]:bg-green-600 data-[selected=true]:text-white data-[selected=true]:border-green-600"
-                            >
-                                <GlobeIcon size={20} weight="bold" /> Público
-                            </button>
-                            <button
-                                onClick={() =>
-                                    setPostVisibility('NEAR_NEIGHBORHOODS')
-                                }
-                                data-selected={
-                                    postVisibility === 'NEAR_NEIGHBORHOODS'
-                                }
-                                className="cursor-pointer text-neutral-800 px-4 py-2 border-2 border-neutral-100 rounded-full flex items-center gap-2 font-semibold hover:border-green-600 hover:text-green-600 transition data-[selected=true]:bg-green-600 data-[selected=true]:text-white data-[selected=true]:border-green-600"
-                            >
-                                <CityIcon size={20} weight="bold" /> Vizinhanças
-                                próximas
-                            </button>
-                            <button
-                                data-selected={
-                                    postVisibility === 'NEIGHBORHOOD'
-                                }
-                                onClick={() =>
-                                    setPostVisibility('NEIGHBORHOOD')
-                                }
-                                className="cursor-pointer text-neutral-800 px-4 py-2 border-2 border-neutral-100 rounded-full flex items-center gap-2 font-semibold hover:border-green-600 hover:text-green-600 transition data-[selected=true]:bg-green-600 data-[selected=true]:text-white data-[selected=true]:border-green-600"
-                            >
-                                <HouseLineIcon size={20} weight="bold" />{' '}
-                                Vizinhança
-                            </button>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit}>
+                    <fieldset disabled={busy} className="contents">
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                            <span className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+                                <Image className="size-8 shrink-0 rounded-full bg-neutral-100 object-cover" src={data?.user.avatarUrl || '/images/default-avatar.png'} alt="" width={32} height={32} />
+                                <span className="truncate">{data?.user.displayName}</span>
+                            </span>
+                            <label className="flex items-center gap-2 text-sm text-neutral-600">
+                                Público do post
+                                <select value={visibility} onChange={(event) => setSelectedVisibility(event.target.value as PostVisibility)} className="min-h-10 rounded-lg border border-neutral-200 bg-neutral-50 px-2 font-medium text-neutral-900">
+                                    <option value="PUBLIC">Todos</option>
+                                    <option value="NEAR_NEIGHBORHOODS">Vizinhanças próximas</option>
+                                    <option value="NEIGHBORHOOD">Minha vizinhança</option>
+                                </select>
+                            </label>
                         </div>
-                        <div className="mt-4 text-center text-neutral-600 font-semibold">
-                            <p className="flex items-center justify-center gap-2">
-                                <InfoIcon size={20} weight="bold" />
-                                {postVisibility === 'PUBLIC' &&
-                                    'Seu post será visível para todos os usuários do Neybor.'}
-                                {postVisibility === 'NEIGHBORHOOD' &&
-                                    'Seu post será visível apenas para usuários em sua vizinhança.'}
-                                {postVisibility === 'NEAR_NEIGHBORHOODS' &&
-                                    'Seu post será visível apenas para usuários em vizinhanças próximas.'}
-                            </p>
+                        <label htmlFor="compose-content" className="sr-only">Texto do post</label>
+                        <textarea
+                            id="compose-content"
+                            ref={editorRef}
+                            onChange={(event) => setPostContent(event.target.value)}
+                            value={postContent}
+                            placeholder={isAlert ? 'Descreva o que está acontecendo e onde' : 'O que está acontecendo?'}
+                            aria-describedby="compose-limit"
+                            aria-invalid={postContent.length > 300 || undefined}
+                            className="mt-4 min-h-24 w-full resize-y rounded-lg border border-neutral-200 px-3 py-2 text-base placeholder:text-neutral-600"
+                            rows={3}
+                        />
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {FORMATS.map(({ type, label, icon: Icon }) => (
+                                <button
+                                    key={type}
+                                    type="button"
+                                    aria-pressed={postType === type}
+                                    onClick={() => setPostType(postType === type ? 'GENERAL' : type)}
+                                    className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 px-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 aria-pressed:border-green-200 aria-pressed:bg-green-50 aria-pressed:text-green-800"
+                                >
+                                    <Icon size={18} weight="bold" aria-hidden="true" /> {label}
+                                </button>
+                            ))}
                         </div>
-                        {errorMessage && (
-                            <p
-                                role="alert"
-                                className="mt-4 w-full flex gap-2 items-center justify-center text-red-700 font-semibold text-sm"
-                            >
-                                <WarningIcon weight="bold" size={18} />
-                                {errorMessage}
-                            </p>
+                        {isAlert && (
+                            <AlertCategoryPicker value={alertCategory} onChange={setAlertCategory} />
                         )}
-                        <footer className="mt-8 flex justify-between w-full">
-                            <Button
-                                onClick={() => setCurrentStep('draft')}
-                                iconPlacement="leading"
-                                icon={ArrowLeftIcon}
-                                variant="secondary"
+                        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-neutral-200 pb-3">
+                            <button
+                                type="button"
+                                onClick={handleLocate}
+                                disabled={isLocating}
+                                className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-sm font-semibold text-green-800 hover:underline disabled:cursor-wait"
                             >
-                                Voltar
-                            </Button>
-                            <Button
-                                activityIndicator={isPostSending}
-                                onClick={handleSendPost}
-                                disabled={isPostSending}
-                            >
-                                {isPostSending ? 'Postando...' : 'Postar'}
+                                <MapPinIcon size={18} weight={coords ? 'fill' : 'bold'} aria-hidden="true" />
+                                {isLocating ? 'Obtendo localização…' : coords ? 'Remover localização atual' : 'Usar localização atual'}
+                            </button>
+                            {coords ? (
+                                <span className="text-sm text-neutral-600">Localização atual selecionada</span>
+                            ) : isAlert ? (
+                                <span className="text-sm text-neutral-600">Local aproximado: endereço do perfil</span>
+                            ) : null}
+                        </div>
+                        {errorMessage && <p role="alert" className="mt-3 text-sm font-semibold text-red-800">{errorMessage}</p>}
+                        <footer className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                            <p id="compose-limit" className={`text-sm tabular-nums ${postContent.length > 300 ? 'font-semibold text-red-800' : 'text-neutral-600'}`}>
+                                {postContent.length}/300 caracteres
+                            </p>
+                            <Button type="submit" disabled={!valid || busy} activityIndicator={busy} activityLabel={isPostSending ? 'Publicando…' : 'Verificando…'}>
+                                Publicar
                             </Button>
                         </footer>
-                    </div>
-                )}
-            </motion.dialog>
-            {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.5 }}
-                    exit={{ opacity: 0 }}
-                    className="z-40 fixed bg-black opacity-50 inset-0"
-                />
+                    </fieldset>
+                </form>
             )}
-        </>
-    )
-}
-
-const POST_TYPE_OPTIONS = [
-    {
-        type: PostType.SAFETY_ALERT,
-        label: 'Alerta',
-        icon: WarningIcon,
-        styles: 'hover:text-orange-600 hover:outline-orange-600 data-[selected=true]:bg-orange-600 data-[selected=true]:text-white data-[selected=true]:outline-orange-600 ',
-    },
-    {
-        type: PostType.MARKETPLACE,
-        label: 'Anunciar um item',
-        icon: ShoppingCartIcon,
-        styles: 'hover:text-green-600 hover:outline-green-600 data-[selected=true]:bg-green-600 data-[selected=true]:text-white data-[selected=true]:outline-green-600 ',
-    },
-    {
-        type: PostType.RECOMMENDATION,
-        label: 'Recomendação',
-        icon: MagnifyingGlassIcon,
-        styles: 'hover:text-purple-600 hover:outline-purple-600 data-[selected=true]:bg-purple-600 data-[selected=true]:text-white data-[selected=true]:outline-purple-600 ',
-    },
-]
-
-// Anúncios da Feira do Bairro têm fluxo próprio (/feira/novo); não viram post do feed.
-const VISIBLE_POST_TYPE_OPTIONS = POST_TYPE_OPTIONS.filter(
-    (option) => option.type !== PostType.MARKETPLACE,
-)
-
-const PostTypeOptions = ({
-    typeSelected,
-    onTypeSelectChange,
-}: {
-    typeSelected: PostType
-    onTypeSelectChange: Dispatch<SetStateAction<PostType>>
-}) => {
-    const scrollContainerRef = useRef<HTMLDivElement>(null)
-    const isDraggingRef = useRef(false)
-    const [isMouseDown, setIsMouseDown] = useState(false)
-    const [startX, setStartX] = useState(0)
-    const [scrollLeft, setScrollLeft] = useState(0)
-
-    const handleMouseDown = (e: MouseEvent) => {
-        if (!scrollContainerRef.current) return
-        isDraggingRef.current = false
-        setIsMouseDown(true)
-        setStartX(e.pageX - scrollContainerRef.current.offsetLeft)
-        setScrollLeft(scrollContainerRef.current.scrollLeft)
-    }
-
-    const handleMouseLeave = () => {
-        setIsMouseDown(false)
-        isDraggingRef.current = false
-    }
-
-    const handleMouseUp = () => {
-        setIsMouseDown(false)
-        setTimeout(() => {
-            isDraggingRef.current = false
-        }, 0)
-    }
-
-    const handleMouseMove = (e: MouseEvent) => {
-        if (!isMouseDown || !scrollContainerRef.current) return
-        e.preventDefault()
-        const x = e.pageX - scrollContainerRef.current.offsetLeft
-        const walk = (x - startX) * 2
-        if (Math.abs(x - startX) > 5) {
-            isDraggingRef.current = true
-        }
-        scrollContainerRef.current.scrollLeft = scrollLeft - walk
-    }
-
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollBy({
-                left: direction === 'left' ? -200 : 200,
-                behavior: 'smooth',
-            })
-        }
-    }
-
-    return (
-        <div className="relative group mt-4 mb-4 flex items-center">
-            <button
-                onClick={() => scroll('left')}
-                className="cursor-pointer absolute left-0 z-10 p-1.5 rounded-full bg-white shadow-sm border border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:bg-white -ml-2 hidden group-hover:block transition-all hover:scale-110"
-            >
-                <CaretLeftIcon size={16} weight="bold" />
-            </button>
-            <section
-                ref={scrollContainerRef}
-                className={`flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full px-1 py-1 pr-8 ${isMouseDown ? 'cursor-grabbing' : 'cursor-grab'}`}
-                onMouseDown={handleMouseDown}
-                onMouseLeave={handleMouseLeave}
-                onMouseUp={handleMouseUp}
-                onMouseMove={handleMouseMove}
-            >
-                {VISIBLE_POST_TYPE_OPTIONS.map(
-                    ({ type, label, icon: Icon }) => (
-                        <button
-                            key={type}
-                            onClick={() => {
-                                if (!isDraggingRef.current) {
-                                    if (typeSelected === type) {
-                                        onTypeSelectChange(PostType.GENERAL)
-                                    } else {
-                                        onTypeSelectChange(type)
-                                    }
-                                }
-                            }}
-                            data-selected={typeSelected === type}
-                            className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full outline-2 text-nowrap select-none -outline-offset-2 outline-neutral-100 font-semibold transition ${POST_TYPE_OPTIONS.find((option) => option.type === type)?.styles}`}
-                        >
-                            <Icon className="text-lg" weight="bold" /> {label}
-                        </button>
-                    ),
-                )}
-            </section>
-            <button
-                onClick={() => scroll('right')}
-                className="cursor-pointer absolute right-0 z-10 p-1.5 rounded-full bg-white shadow-sm border border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:bg-white -mr-2 hidden group-hover:block transition-all hover:scale-110"
-            >
-                <CaretRightIcon size={16} weight="bold" />
-            </button>
-        </div>
+        </dialog>
     )
 }

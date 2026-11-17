@@ -12,8 +12,11 @@ import { InstallBanner } from '@/components/pwa/install-banner'
 export function AppShell({ children }: { children: ReactNode }) {
     return (
         <ComposeProvider>
-            <Header />
-            <FeedLayout>{children}</FeedLayout>
+            <a href="#conteudo-principal" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-30 focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Ir para o conteúdo</a>
+            <div className="min-h-dvh bg-white lg:bg-canvas">
+                <Header />
+                <FeedLayout>{children}</FeedLayout>
+            </div>
             <InstallBanner variant="floating" />
             <BottomNav />
         </ComposeProvider>

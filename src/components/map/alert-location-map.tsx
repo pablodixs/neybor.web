@@ -12,7 +12,7 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
 /** Tamanhos da imagem estática (pixels lógicos; pedimos @2x). */
 const VARIANTS = {
-    card: { width: 640, height: 320, aspect: 'aspect-[2/1]' },
+    card: { width: 640, height: 240, aspect: 'aspect-[8/3] max-w-72' },
     detail: { width: 640, height: 360, aspect: 'aspect-video' },
 } as const
 
@@ -70,11 +70,9 @@ export function AlertLocationMap({
     categoryIcon?: Icon
     className?: string
 }) {
-    const [failed, setFailed] = useState(false)
+    const [failedSrc, setFailedSrc] = useState<string | null>(null)
 
-    if (!MAPBOX_TOKEN || failed || !hasMappableLocation(latitude, longitude)) {
-        return null
-    }
+    if (!hasMappableLocation(latitude, longitude)) return null
 
     const { width, height, aspect } = VARIANTS[variant]
     const zoom = approximate ? ZOOM_APPROXIMATE : ZOOM_EXACT
@@ -87,13 +85,28 @@ export function AlertLocationMap({
         `?access_token=${MAPBOX_TOKEN}`
 
     const label = approximate ? 'Local aproximado' : 'Local do alerta'
+    const href = `/map?lat=${lat}&lng=${lon}`
+
+    if (!MAPBOX_TOKEN || failedSrc === src) {
+        return (
+            <Link
+                href={href}
+                className={`inline-flex min-h-10 max-w-full flex-wrap items-center gap-x-1.5 rounded-md text-sm font-medium text-neutral-700 hover:text-green-800 ${className}`}
+            >
+                <MapPinIcon size={16} aria-hidden="true" />
+                {label}
+                <span className="font-semibold text-green-800 underline">Abrir no mapa</span>
+            </Link>
+        )
+    }
+
     const areaPercent = approximate
         ? approximateAreaPercent(latitude, width)
         : 0
 
     return (
         <Link
-            href={`/map?lat=${lat}&lng=${lon}`}
+            href={href}
             aria-label={`${label}: abrir no mapa`}
             className={`group relative block w-full overflow-hidden rounded-xl border border-neutral-100 bg-neutral-100 ${aspect} ${className}`}
         >
@@ -105,8 +118,8 @@ export function AlertLocationMap({
                 height={height}
                 loading="lazy"
                 decoding="async"
-                onError={() => setFailed(true)}
-                className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                onError={() => setFailedSrc(src)}
+                className="absolute inset-0 h-full w-full object-cover motion-safe:transition-transform motion-safe:group-hover:scale-[1.02]"
             />
 
             {approximate && (
@@ -124,12 +137,6 @@ export function AlertLocationMap({
                     icon={categoryIcon}
                 />
             </span>
-            {!approximate && (
-                <span
-                    aria-hidden="true"
-                    className="absolute top-1/2 left-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-green-600/40 animate-ping"
-                />
-            )}
 
             <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-neutral-700 shadow-sm backdrop-blur">
                 {approximate ? (

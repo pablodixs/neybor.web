@@ -278,8 +278,9 @@ const PostContent = ({
                     </section>
                 </footer>
                 <form
+                    id="comentarios"
                     onSubmit={handleSendComment}
-                    className={`${isSendingComment && 'opacity-70'} transition`}
+                    className={`scroll-mt-20 ${isSendingComment && 'opacity-70'} transition`}
                 >
                     <div className="py-4 flex gap-2">
                         <Image

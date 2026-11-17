@@ -74,7 +74,7 @@ export function BottomNav() {
                         type="button"
                         onClick={() => openCompose()}
                         aria-label="Novo post"
-                        className="w-12 h-12 rounded-full bg-green-600 active:bg-green-800 text-white flex items-center justify-center shadow-md cursor-pointer"
+                        className="w-12 h-12 rounded-full bg-green-700 active:bg-green-800 text-white flex items-center justify-center shadow-md cursor-pointer"
                     >
                         <PlusIcon size={24} weight="bold" />
                     </button>

@@ -12,8 +12,8 @@ const COPY: Record<FeedFilter, { title: string; text: string }> = {
         text: 'Seja o primeiro a postar e convide seus vizinhos para movimentar o feed.',
     },
     SAFETY_ALERT: {
-        title: 'Nenhum alerta por aqui',
-        text: 'Boa notícia: nada de errado foi avisado. Viu algo? Avise os vizinhos.',
+        title: 'Nenhum relato de alerta',
+        text: 'Viu algo que o bairro precisa saber? Avise os vizinhos.',
     },
     GENERAL: {
         title: 'Nenhuma conversa ainda',
@@ -30,20 +30,12 @@ export function FeedEmptyState({ filter }: { filter: FeedFilter }) {
     const { title, text } = COPY[filter]
 
     return (
-        <div className="text-center py-12 px-4">
-            <div
-                aria-hidden
-                className="mx-auto mb-4 w-14 h-14 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-2xl"
-            >
-                ✦
-            </div>
-            <p className="font-semibold text-lg text-neutral-800">{title}</p>
-            <p className="text-neutral-500 mb-5">{text}</p>
-            <div className="flex gap-2 justify-center">
+        <div className="mx-auto max-w-sm px-4 py-14 text-center">
+            <p className="text-lg font-semibold text-balance text-neutral-900">{title}</p>
+            <p className="mt-1 mb-6 text-pretty text-neutral-600">{text}</p>
+            <div className="flex flex-wrap justify-center gap-2">
                 {filter === 'MARKETPLACE' ? (
-                    <Link href="/feira">
-                        <Button>Abrir a Feira</Button>
-                    </Link>
+                    <Link href="/feira" className="inline-flex min-h-10 items-center rounded-full bg-green-700 px-4 font-semibold text-white hover:bg-green-800">Abrir a Feira</Link>
                 ) : (
                     <Button
                         onClick={() =>
@@ -59,9 +51,7 @@ export function FeedEmptyState({ filter }: { filter: FeedFilter }) {
                             : 'Fazer um post'}
                     </Button>
                 )}
-                <Link href="/convidar">
-                    <Button variant="bordered">Convidar vizinhos</Button>
-                </Link>
+                <Link href="/convidar" className="inline-flex min-h-10 items-center rounded-full px-4 font-semibold text-green-800 hover:bg-green-50">Convidar vizinhos</Link>
             </div>
         </div>
     )
@@ -69,7 +59,7 @@ export function FeedEmptyState({ filter }: { filter: FeedFilter }) {
 
 export function FeedEndState() {
     return (
-        <div className="text-center py-10 text-neutral-500">
+        <div className="py-12 text-center text-neutral-500">
             <p className="font-semibold text-neutral-700">
                 Você viu tudo por enquanto
             </p>

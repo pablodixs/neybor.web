@@ -23,16 +23,16 @@ export function InstallBanner({ variant }: { variant: 'floating' | 'card' }) {
     const wrapper =
         variant === 'floating'
             ? 'xl:hidden fixed left-2 right-2 sm:left-auto sm:right-4 sm:w-96 z-30 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-4 shadow-lg'
-            : 'mb-4'
+            : ''
 
     return (
         <div
-            className={`${wrapper} bg-white border border-neutral-100 rounded-2xl p-4`}
+            className={`${wrapper} bg-white rounded-2xl p-4`}
             role="region"
             aria-label="Instalar o Neybor"
         >
             <div className="flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-green-50 text-green-600 text-2xl shrink-0">
+                <div className="p-2 rounded-xl bg-tint text-on-tint text-2xl shrink-0">
                     <DeviceMobileIcon weight="bold" />
                 </div>
                 <div className="flex-1 min-w-0">

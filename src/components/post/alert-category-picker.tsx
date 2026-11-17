@@ -76,12 +76,12 @@ export function AlertCategoryPicker({
     onChange: (value: AlertCategoryKey) => void
 }) {
     return (
-        <fieldset className="bg-orange-50 p-3 rounded-xl mb-2">
+        <fieldset className="mt-3 rounded-lg bg-orange-50 p-3">
             <legend className="sr-only">Tipo de alerta</legend>
-            <p className="text-orange-700 font-semibold mb-2">
+            <p className="mb-2 text-sm font-semibold text-orange-950">
                 Que tipo de alerta é?
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="flex flex-wrap gap-2">
                 {ALERT_CATEGORIES.map(
                     ({ key, label, icon: CategoryIcon, color }) => {
                         const selected = value === key
@@ -92,7 +92,7 @@ export function AlertCategoryPicker({
                                 aria-pressed={selected}
                                 onClick={() => onChange(key)}
                                 data-selected={selected}
-                                className="flex items-center gap-2 px-3 py-2 rounded-full bg-white font-semibold text-sm text-neutral-700 outline-2 -outline-offset-2 outline-transparent data-[selected=true]:outline-orange-600 data-[selected=true]:text-orange-700 cursor-pointer transition"
+                                className="flex min-h-11 items-center gap-2 rounded-lg px-2.5 py-1.5 bg-white font-semibold text-sm text-neutral-700 outline-2 -outline-offset-2 outline-transparent data-[selected=true]:outline-orange-600 data-[selected=true]:text-orange-950 cursor-pointer transition"
                             >
                                 <span
                                     className={`flex text-white p-1 rounded-full ${color}`}

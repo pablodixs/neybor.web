@@ -12,6 +12,19 @@
     --foreground: #171717;
 }
 
+@theme {
+    /* Superfícies neutras separam áreas sem bordas; o tint da marca (#00A63E) fica para estados ativos. */
+    --color-canvas: #f4f4f4;
+    /* Tint derivado do verde do logo, para os estados ativos combinarem com a marca. */
+    --color-brand: #00a63e;
+    --color-tint: color-mix(in oklab, var(--color-brand) 11%, white);
+    --color-tint-strong: color-mix(in oklab, var(--color-brand) 20%, white);
+    --color-on-tint: color-mix(in oklab, var(--color-brand) 58%, black);
+
+    /* Curva de saída rápida usada nas transições de interface. */
+    --ease-snappy: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 @theme inline {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -44,4 +57,50 @@ body {
         sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* "Ver detalhes" abre a altura em vez de saltar (navegadores sem suporte abrem sem animação). */
+@supports (interpolate-size: allow-keywords) {
+    details.details-animate {
+        interpolate-size: allow-keywords;
+    }
+
+    details.details-animate::details-content {
+        block-size: 0;
+        opacity: 0;
+        overflow: clip;
+        transition:
+            block-size 220ms var(--ease-snappy),
+            opacity 220ms var(--ease-snappy),
+            content-visibility 220ms allow-discrete;
+    }
+
+    details.details-animate[open]::details-content {
+        block-size: auto;
+        opacity: 1;
+    }
+}
+
+/* Popovers que nascem do gatilho: escala sutil + opacidade só na entrada. */
+.pop-in {
+    transform-origin: var(--pop-origin, bottom left);
+    transition:
+        opacity 150ms var(--ease-snappy),
+        transform 150ms var(--ease-snappy);
+
+    @starting-style {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    details.details-animate::details-content {
+        transition-duration: 0s;
+    }
+
+    .pop-in {
+        transform: none;
+        transition-property: opacity;
+    }
 }
