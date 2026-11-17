@@ -5,9 +5,11 @@ import { usePathname } from 'next/navigation'
 import { ReactNode } from 'react'
 
 import { Logo } from '@/components/header'
-import { Button } from '@/components/button'
 
 import { loginHref, SIGNUP_HREF } from './signup-links'
+
+const ACCOUNT_LINK = 'inline-flex min-h-9 shrink-0 items-center rounded-full px-3 text-sm font-semibold whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700'
+const SIGNUP_LINK = `${ACCOUNT_LINK} bg-green-700 text-white hover:bg-green-800`
 
 /** Casca para visitantes sem conta: marca, Entrar / Criar conta e um convite fixo no celular. */
 export function PublicShell({ children }: { children: ReactNode }) {
@@ -24,14 +26,12 @@ export function PublicShell({ children }: { children: ReactNode }) {
                         Feira do Bairro
                     </Link>
                     <div className="ml-auto flex gap-2">
-                        <Link href={loginHref(path || '/feira')}>
-                            <Button variant="secondary" size="sm">
-                                Entrar
-                            </Button>
+                        <Link href={loginHref(path || '/feira')} className={`${ACCOUNT_LINK} bg-neutral-100 text-neutral-900 hover:bg-neutral-200`}>
+                            Entrar
                         </Link>
-                        <Link href={SIGNUP_HREF} className="hidden sm:block">
-                            <Button size="sm">Criar conta</Button>
-                        </Link>
+                        <div className="hidden sm:block">
+                            <Link href={SIGNUP_HREF} className={SIGNUP_LINK}>Criar conta</Link>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -42,9 +42,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
                 <p className="flex-1 text-sm font-semibold text-neutral-700 leading-tight">
                     Fale com os vizinhos e anuncie de graça.
                 </p>
-                <Link href={SIGNUP_HREF}>
-                    <Button size="sm">Criar conta</Button>
-                </Link>
+                <Link href={SIGNUP_HREF} className={SIGNUP_LINK}>Criar conta</Link>
             </div>
         </div>
     )

@@ -13,60 +13,54 @@ export function ListingCard({
     const distance = formatDistance(listing.distanceMeters)
     const price = formatPrice(listing.type, listing.priceCents)
     const open = listing.status === 'ACTIVE'
+    const location = [distance, listing.neighborhood].filter(Boolean).join(' · ')
+    const category = categoryLabels[listing.category]
 
     return (
         <Link
             href={`/feira/${listing.id}`}
-            className="flex flex-col rounded-2xl border border-neutral-100 overflow-hidden hover:bg-neutral-50 transition"
+            className="group block min-w-0 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-700"
         >
-            <div className="relative aspect-4/3 bg-neutral-100 flex items-center justify-center text-neutral-300">
+            <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-neutral-100 text-neutral-400 after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:border after:border-black/10">
                 {listing.thumbUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                         src={listing.thumbUrl}
-                        alt={listing.title}
+                        alt=""
                         className="w-full h-full object-cover"
                         loading="lazy"
                     />
                 ) : (
-                    <ImageIcon size={40} />
+                    <ImageIcon size={32} aria-hidden="true" />
                 )}
-                <span
-                    className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold ${listing.type === 'DONATION' ? 'bg-green-600 text-white' : listing.type === 'WANTED' ? 'bg-orange-100 text-orange-700' : 'bg-white text-neutral-700'}`}
-                >
-                    {TYPE_LABELS[listing.type]}
-                </span>
                 {!open && (
-                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-neutral-800 text-white">
+                    <span className="absolute top-2 left-2 rounded-md bg-neutral-900 px-2 py-1 text-xs font-semibold text-white">
                         {STATUS_LABELS[listing.status]}
                     </span>
                 )}
             </div>
-            <div className="p-3 flex flex-col gap-0.5">
-                <strong className="font-semibold text-neutral-800 truncate">
+            <div className="flex flex-col gap-1 pt-2.5">
+                <strong className="wrap-anywhere text-sm leading-snug font-medium text-neutral-800 group-hover:underline">
                     {listing.title}
                 </strong>
                 {price && (
                     <span
-                        className={`font-semibold ${listing.type === 'DONATION' ? 'text-green-700' : 'text-neutral-900'}`}
+                        className={`wrap-anywhere text-base leading-tight font-bold ${listing.type === 'DONATION' ? 'text-green-800' : 'text-neutral-950'}`}
                     >
                         {price}
                     </span>
                 )}
-                <p className="text-sm text-neutral-500 flex items-center gap-1 truncate">
+                <p className="flex items-start gap-1 text-xs text-neutral-600">
                     {listing.author?.verified && (
                         <SealCheckIcon
                             weight="fill"
-                            className="text-green-600 shrink-0"
+                            className="mt-0.5 shrink-0 text-green-700"
                             aria-label="Vizinho verificado"
                         />
                     )}
-                    <span className="truncate">
-                        {[distance, listing.neighborhood, categoryLabels[listing.category]]
-                            .filter(Boolean)
-                            .join(' · ')}
-                    </span>
+                    <span className="min-w-0 wrap-anywhere">{location || category || TYPE_LABELS[listing.type]}</span>
                 </p>
+                {location && category && <p className="wrap-anywhere text-xs text-neutral-600">{category}</p>}
             </div>
         </Link>
     )
